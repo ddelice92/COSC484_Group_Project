@@ -20,19 +20,18 @@ async function main() {
     }catch (e) {
         console.error(e);
     }finally {
-        await client.close();
+        
     }
 
     app.listen(port, () => {
         console.log("Server Listening on PORT:", port);
     });
     
-    app.get("/api/getgamedata/:gameid", (request, response) => {
+    app.get("/api/getgamedata/:gameid", async (request, response) => {
         console.log("1")
         
-        game = findGameById(client, request.params.gameid);
-        console.log(game);
-        response.send("ok");
+        game = await findGameById(client.db("testingdb"), request.params.gameid);
+        response.json(game);
     });
    
 
@@ -53,21 +52,8 @@ async function createGame(client, game) {
     console.log(`New listing created with the following id: ${result.insertedId}`);
 }
 
-async function findGameById(client, gameId) {
-    game = null;
-    client.connect(function (err, db) {
-        console.log("2");
-        if (err) throw err;
-        var dbo = db.db("testingdb").collection("samplegame");
-        dbo.collection.find({ "gameId": gameId }).toObject(function (err, result) {
-            if (err) throw err;
-            console.log(result)
-            game = result;
-            db.close
-            
-        })
-    });
-    return game;
+async function findGameById(db, gameId) {
+    return await db.collection('samplegame').find({ "gameId": gameId }).toArray();
 }
 
 main().catch(console.error);
