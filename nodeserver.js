@@ -1,22 +1,29 @@
 const { MongoClient } = require('mongodb');
 const express = require('express')
+var cors = require('cors');
 const app = express();
 const port = 3001;
 
 async function main() {
     const uri = "mongodb://localhost";
     const client = new MongoClient(uri);
+    const gameCollection = client.db("testingdb").collection("samplegame");
     var gameobject = {
-        gameId: "abcdefg",
+        gameName: "sampletictactoe",
         gameType: "tictactoe",
         currentBoard: ["e", "e", "e", "e", "e", "e", "e", "e", "e"]
     }
+    app.use(cors({
+        origin: 'http://localhost:3000',
+        methods: ['GET', 'POST', 'PUT', 'DELETE']
+    }));
 
     
     try {
         await client.connect();
         await listDatabases(client);
-        //await createGame(client, gameobject)
+        await createGame(gameCollection, generateGame('tictactoe', 'samplegametictactoe'));
+        await createGame(gameCollection, generateGame('checkers', 'samplegamecheckers'));
     }catch (e) {
         console.error(e);
     }finally {
@@ -27,16 +34,49 @@ async function main() {
         console.log("Server Listening on PORT:", port);
     });
     
-    app.get("/api/getgamedata/:gameid", async (request, response) => {
-        console.log("1")
-        
-        game = await findGameById(client.db("testingdb"), request.params.gameid);
+    app.get("/api/getgamedata/:gamename", async (request, response) => {
+        console.log("retrieved " + request.params.gamename)
+        game = await findGameByName(client.db("testingdb"), request.params.gamename);
+        if (!game) {
+            game = {};
+        }
         response.json(game);
+    });
+
+    app.get("/api/getgamedata/", async (request, response) => {
+        response.json({});
     });
    
 
     
 
+}
+
+function generateGame(gameType, gameName) {
+    if (gameType == 'tictactoe') {
+        return {
+            _id: gameName,
+            gameType: "tictactoe",
+            currentBoard: ["e", "e", "e", "e", "e", "e", "e", "e", "e"]
+        }
+    } else if (gameType == "checkers") {
+        return {
+            _id: gameName,
+            gameType: "checkers",
+            currentBoard: [
+                "e", "w", "e", "w", "e", "w", "e", "w",
+                "w", "e", "w", "e", "w", "e", "w", "e",
+                "e", "w", "e", "w", "e", "w", "e", "w",
+                "e", "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e", "e",
+                "b", "e", "b", "e", "b", "e", "b", "e",
+                "e", "b", "e", "b", "e", "b", "e", "b",
+                "b", "e", "b", "e", "b", "e", "b", "e"]
+            }
+        }else {
+            console.error("tried to create a game of invalid gameType");
+        }
 }
 
 
@@ -47,13 +87,17 @@ async function listDatabases(client) {
 
 }
 
-async function createGame(client, game) {
-    const result = await client.db("testingdb").collection("samplegame").insertOne(game);
-    console.log(`New listing created with the following id: ${result.insertedId}`);
+async function createGame(gameCollection, game) {
+    if (await gameCollection.findOne({ _id: game._id })) {
+        console.log("Tried to create a game with a name that already exists: " + game._id );
+    }else {
+        const result = await gameCollection.insertOne(game);
+        console.log(`New listing created with the following id: ${result.insertedId}`);
+    }
 }
 
-async function findGameById(db, gameId) {
-    return await db.collection('samplegame').find({ "gameId": gameId }).toArray();
+async function findGameByName(gameCollection, gameName) {
+    return await gameCollection.find({ "_id": gameName }).toArray();
 }
 
 main().catch(console.error);
