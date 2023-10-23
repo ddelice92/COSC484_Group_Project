@@ -8,11 +8,7 @@ async function main() {
     const uri = "mongodb://localhost";
     const client = new MongoClient(uri);
     const gameCollection = client.db("testingdb").collection("samplegame");
-    var gameobject = {
-        gameName: "sampletictactoe",
-        gameType: "tictactoe",
-        currentBoard: ["e", "e", "e", "e", "e", "e", "e", "e", "e"]
-    }
+
     app.use(cors({
         origin: 'http://localhost:3000',
         methods: ['GET', 'POST', 'PUT', 'DELETE']
@@ -29,6 +25,16 @@ async function main() {
     }finally {
         
     }
+
+    game = generateGame('tictactoe', 'win');
+    tictactoeMakeMove(game, 2, 'x');
+    tictactoeMakeMove(game, 4, 'x');
+    tictactoeMakeMove(game, 6, 'x');
+    console.log(game.currentBoard)
+    console.log(tictactoeCheckForWin(game));
+
+
+
 
     app.listen(port, () => {
         console.log("Server Listening on PORT:", port);
@@ -52,6 +58,90 @@ async function main() {
 
 }
 
+function tictactoeMakeMove(game, space, side) {
+    if (game.currentBoard[space] == 'e') {
+        game.currentBoard[space] = side;
+    }
+}
+
+function tictactoeCheckForWin(game) {
+    winner = {
+        winner: 'e',
+        type: '',
+        position: 0
+    }
+    for (let j = 0; j <= 6; j = j + 3) {//Check rows for winner
+        last = game.currentBoard[j];
+        if (winner.winner != 'e') {
+            winner.position = j / 3;
+            winner.type = 'row';
+            return winner;
+        }
+        for (let i = 1; i <= 2; i++) {
+            if (game.currentBoard[i + j] == last) {
+                last = game.currentBoard[j+i];
+                winner.winner = last;
+            } else {
+                last = game.currentBoard[j + i];
+                winner.winner = 'e';
+            }
+        }
+    }
+    
+    for (let j = 0; j <= 2; j ++) {//check cols for winner
+        last = game.currentBoard[j];
+        if (winner.winner != 'e') {
+            winner.position = j;
+            winner.type = 'col';
+            return winner;
+        }
+        for (let i = 3; i <= 6; i = i+3) {
+            if (game.currentBoard[i + j] == last) {
+                last = game.currentBoard[j + i];
+                winner.winner = last;
+            } else {
+                last = game.currentBoard[j + i];
+                winner.winner = 'e';
+            }
+        }
+    }
+
+    for (let j = 0; j <= 4; j = j + 4) {//check diagonal for winner
+        last = game.currentBoard[j];
+        if (winner.winner != 'e') {
+            winner.position = 1;
+            winner.type = 'diag';
+            return winner;
+        }
+        if (game.currentBoard[j + 4] == last) {
+            last = game.currentBoard[j + 4];
+            winner.winner = last;
+        } else {
+            last = game.currentBoard[j + 4];
+            winner.winner = 'e';
+        }
+    }
+
+    for (let j = 2; j <= 4; j = j+2) {//check reverse diagonal for winner
+        last = game.currentBoard[j];
+        if (winner.winner != 'e') {
+            winner.position = 2;
+            winner.type = 'diag';
+            return winner;
+        }
+        if (game.currentBoard[j+2] == last) {
+            last = game.currentBoard[j+2];
+            winner.winner = last;
+        } else {
+            last = game.currentBoard[j + 2];
+            winner.winner = 'e';
+        }
+    }
+    
+ 
+    return winner;
+}
+
 function generateGame(gameType, gameName) {
     if (gameType == 'tictactoe') {
         return {
@@ -67,7 +157,6 @@ function generateGame(gameType, gameName) {
                 "e", "w", "e", "w", "e", "w", "e", "w",
                 "w", "e", "w", "e", "w", "e", "w", "e",
                 "e", "w", "e", "w", "e", "w", "e", "w",
-                "e", "e", "e", "e", "e", "e", "e", "e",
                 "e", "e", "e", "e", "e", "e", "e", "e",
                 "e", "e", "e", "e", "e", "e", "e", "e",
                 "b", "e", "b", "e", "b", "e", "b", "e",
