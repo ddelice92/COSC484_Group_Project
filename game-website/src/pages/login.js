@@ -1,15 +1,31 @@
 import React, { useState } from "react"
 import Header from "../components/header"
+import axios from 'axios';
 import "../App.css"
 import "../CSS/login.css";
 
 export default function Login() {
     const [username, setUsername] = useState('');
     const [pass, setPass] = useState('');
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {//Sends a post request to /login with username and password which returns token
         e.preventDefault();
-        console.log(username);
+        const request = {
+            username: username,
+            password: pass
+        };
+
+        const response = await axios.post('/login', request).catch(function (error) {console.log(error);});
+        if (response) {//If the request is successful then the session token is set in local storage
+            const token = response.data.token;
+            localStorage.setItem('token', token);
+            console.log(token);
+            setIsLoggedIn(true);
+        } else {
+            console.log("failed to login with request: " + request.username);
+        }
+        
     }
 
     return (

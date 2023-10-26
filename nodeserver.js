@@ -67,6 +67,7 @@ async function main() {
         if (await authUser(userCollection, username, password) == 'USER_AUTHED') {
             const token = generateToken(username, secretKey);
             console.log(token);
+            await updateUserSessionID(userCollection, username, token);
             res.json({ token });
         } else {
             res.status(401);
@@ -215,7 +216,7 @@ async function addUser(userCollection, username, password) {//Creates account. I
     if (await userCollection.findOne({ _id: username })) {
         return 'USER_ALREADY_EXISTS';
     } else {
-        await userCollection.insertOne({ _id: username, password: password });
+        await userCollection.insertOne({ _id: username, password: password, session_id: '', wins: 0, played: 0});
         return 'USER_ADDED';
     }
 }
@@ -231,6 +232,17 @@ async function authUser(userCollection, username, password) {//returns 'USER_AUT
     } else {
         return 'USER_DOES_NOT_EXIST';
     }
+}
+
+async function updateUserSessionID(userCollection, username, token) {//Updates session_id for user with username
+    await userCollection.updateOne(
+        { _id: username },
+        {
+            "$set": {
+                session_id: token
+            }
+        }
+    );
 }
 
 function generateToken(user, secretKey){
