@@ -1,3 +1,4 @@
+require('dotenv').config({ override: true, path: `${__dirname}/credentials.env` });
 const { MongoClient } = require('mongodb');
 const express = require('express')
 var cors = require('cors');
@@ -5,9 +6,8 @@ const app = express();
 const port = 3001;
 
 async function main() {
-    const uri = "mongodb://localhost";
-    const client = new MongoClient(uri);
-    const gameCollection = client.db("testingdb").collection("samplegame");
+    const client = new MongoClient(process.env.MONGO_URI);
+    const gameCollection = client.db("Game").collection("Login");
 
     app.use(cors({
         origin: 'http://localhost:3000',
@@ -35,14 +35,13 @@ async function main() {
 
 
 
-
     app.listen(port, () => {
         console.log("Server Listening on PORT:", port);
     });
     
     app.get("/api/getgamedata/:gamename", async (request, response) => {
         console.log("retrieved " + request.params.gamename)
-        game = await findGameByName(client.db("testingdb"), request.params.gamename);
+        game = await findGameByName(gameCollection, request.params.gamename);
         if (!game) {
             game = {};
         }
@@ -142,7 +141,7 @@ function tictactoeCheckForWin(game) {
     return winner;
 }
 
-function generateGame(gameType, gameName) {
+function generateGame(gameType, gameName) {//Returns a game object with name gameName and type gameType
     if (gameType == 'tictactoe') {
         return {
             _id: gameName,
@@ -176,7 +175,7 @@ async function listDatabases(client) {
 
 }
 
-async function createGame(gameCollection, game) {
+async function createGame(gameCollection, game) {//Adds a game object to the database
     if (await gameCollection.findOne({ _id: game._id })) {
         console.log("Tried to create a game with a name that already exists: " + game._id );
     }else {
