@@ -1,6 +1,7 @@
 require('dotenv').config({ override: true, path: `${__dirname}/credentials.env` });
 const { MongoClient } = require('mongodb');
 const express = require('express')
+const jwt = require('jsonwebtoken');
 var cors = require('cors');
 const app = express();
 const port = 3001;
@@ -10,10 +11,14 @@ async function main() {
     const gameCollection = client.db("Game").collection("Games");
     const userCollection = client.db("Game").collection("Users");
 
+    const secretKey = process.env.SECRET_KEY;
+
     app.use(cors({
         origin: 'http://localhost:3000',
         methods: ['GET', 'POST', 'PUT', 'DELETE']
     }));
+
+    app.use(express.json())
 
     
     try {
@@ -54,7 +59,22 @@ async function main() {
     app.get("/api/getgamedata/", async (request, response) => {//Returns empty object if no gamename parameter is given
         response.json({});
     });
-   
+
+    app.post('/login', async (req, res) => { //Expects request with body in form of {"username":"username", "password":"password"}, returns session token if successful auth
+        const username = req.body.username;
+        const password = req.body.password;
+
+        if (await authUser(userCollection, username, password) == 'USER_AUTHED') {
+            const token = generateToken(username, secretKey);
+            console.log(token);
+            res.json({ token });
+        } else {
+            res.status(401);
+            res.json({});
+        }
+        
+
+    })
 
     
 
@@ -212,6 +232,19 @@ async function authUser(userCollection, username, password) {//returns 'USER_AUT
         return 'USER_DOES_NOT_EXIST';
     }
 }
+
+function generateToken(user, secretKey){
+    const payload = {
+        id: user
+    };
+
+    const token = jwt.sign(payload, secretKey, {
+        expiresIn: '1h', // The token expires after 1 hour
+    });
+
+    return token;
+};
+
 
 main().catch(console.error);
 
