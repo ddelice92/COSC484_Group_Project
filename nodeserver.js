@@ -1,18 +1,24 @@
 require('dotenv').config({ override: true, path: `${__dirname}/credentials.env` });
 const { MongoClient } = require('mongodb');
 const express = require('express')
+const jwt = require('jsonwebtoken');
 var cors = require('cors');
 const app = express();
 const port = 3001;
 
 async function main() {
     const client = new MongoClient(process.env.MONGO_URI);
-    const gameCollection = client.db("Game").collection("Login");
+    const gameCollection = client.db("Game").collection("Games");
+    const userCollection = client.db("Game").collection("Users");
+
+    const secretKey = process.env.SECRET_KEY;
 
     app.use(cors({
         origin: 'http://localhost:3000',
         methods: ['GET', 'POST', 'PUT', 'DELETE']
     }));
+
+    app.use(express.json())
 
     
     try {
@@ -20,6 +26,8 @@ async function main() {
         await listDatabases(client);
         await createGame(gameCollection, generateGame('tictactoe', 'samplegametictactoe'));
         await createGame(gameCollection, generateGame('checkers', 'samplegamecheckers'));
+        console.log(await addUser(userCollection, 'testuser', 'testpassword'));
+        await authUser(userCollection, 'testuser', 'notreal');
     }catch (e) {
         console.error(e);
     }finally {
@@ -39,7 +47,7 @@ async function main() {
         console.log("Server Listening on PORT:", port);
     });
     
-    app.get("/api/getgamedata/:gamename", async (request, response) => {
+    app.get("/api/getgamedata/:gamename", async (request, response) => {// returns game object of game with name gamename
         console.log("retrieved " + request.params.gamename)
         game = await findGameByName(gameCollection, request.params.gamename);
         if (!game) {
@@ -48,10 +56,26 @@ async function main() {
         response.json(game);
     });
 
-    app.get("/api/getgamedata/", async (request, response) => {
+    app.get("/api/getgamedata/", async (request, response) => {//Returns empty object if no gamename parameter is given
         response.json({});
     });
-   
+
+    app.post('/login', async (req, res) => { //Expects request with body in form of {"username":"username", "password":"password"}, returns session token if successful auth
+        const username = req.body.username;
+        const password = req.body.password;
+
+        if (await authUser(userCollection, username, password) == 'USER_AUTHED') {
+            const token = generateToken(username, secretKey);
+            console.log(token);
+            await updateUserSessionID(userCollection, username, token);
+            res.json({ token });
+        } else {
+            res.status(401);
+            res.json({});
+        }
+        
+
+    })
 
     
 
@@ -187,6 +211,52 @@ async function createGame(gameCollection, game) {//Adds a game object to the dat
 async function findGameByName(gameCollection, gameName) {
     return await gameCollection.find({ "_id": gameName }).toArray();
 }
+
+async function addUser(userCollection, username, password) {//Creates account. If success returns USER_ADDED if failure returns USER_ALREADY_EXISTS
+    if (await userCollection.findOne({ _id: username })) {
+        return 'USER_ALREADY_EXISTS';
+    } else {
+        await userCollection.insertOne({ _id: username, password: password, session_id: '', wins: 0, played: 0});
+        return 'USER_ADDED';
+    }
+}
+
+async function authUser(userCollection, username, password) {//returns 'USER_AUTHED' if username:password combo is good, 'INVALID_PASSWORD' if user exists but password is wrong, and 'USER_DOES_NOT_EXIST' if user does not exist
+    const result = await userCollection.findOne({ _id: username });
+    if (result) {
+        if (result.password == password) {
+            return 'USER_AUTHED';
+        } else {
+            return 'INVALID_PASSWORD';
+        }
+    } else {
+        return 'USER_DOES_NOT_EXIST';
+    }
+}
+
+async function updateUserSessionID(userCollection, username, token) {//Updates session_id for user with username
+    await userCollection.updateOne(
+        { _id: username },
+        {
+            "$set": {
+                session_id: token
+            }
+        }
+    );
+}
+
+function generateToken(user, secretKey){
+    const payload = {
+        id: user
+    };
+
+    const token = jwt.sign(payload, secretKey, {
+        expiresIn: '1h', // The token expires after 1 hour
+    });
+
+    return token;
+};
+
 
 main().catch(console.error);
 
