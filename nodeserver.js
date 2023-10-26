@@ -13,11 +13,13 @@ async function main() {
 
     const secretKey = process.env.SECRET_KEY;
 
+    //enable cors at specified origin
     app.use(cors({
         origin: 'http://localhost:3000',
         methods: ['GET', 'POST', 'PUT', 'DELETE']
     }));
 
+    //initialize json
     app.use(express.json())
 
     
