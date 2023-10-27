@@ -9,7 +9,8 @@ export default function Login() {
     const [pass, setPass] = useState('');
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    const handleSubmit = async (e) => {//Sends a post request to /login with username and password which returns token
+    //Sends a post request to /login with username and password which returns token
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const request = {
             username: username,

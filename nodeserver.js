@@ -49,7 +49,8 @@ async function main() {
         console.log("Server Listening on PORT:", port);
     });
     
-    app.get("/api/getgamedata/:gamename", async (request, response) => {// returns game object of game with name gamename
+    // returns game object of game with name gamename
+    app.get("/api/getgamedata/:gamename", async (request, response) => {
         console.log("retrieved " + request.params.gamename)
         game = await findGameByName(gameCollection, request.params.gamename);
         if (!game) {
@@ -58,11 +59,13 @@ async function main() {
         response.json(game);
     });
 
-    app.get("/api/getgamedata/", async (request, response) => {//Returns empty object if no gamename parameter is given
+    //Returns empty object if no gamename parameter is given
+    app.get("/api/getgamedata/", async (request, response) => {
         response.json({});
     });
 
-    app.post('/login', async (req, res) => { //Expects request with body in form of {"username":"username", "password":"password"}, returns session token if successful auth
+    //Expects request with body in form of {"username":"username", "password":"password"}, returns session token if successful auth
+    app.post('/login', async (req, res) => { 
         const username = req.body.username;
         const password = req.body.password;
 
@@ -95,7 +98,9 @@ function tictactoeCheckForWin(game) {
         type: '',
         position: 0
     }
-    for (let j = 0; j <= 6; j = j + 3) {//Check rows for winner
+
+    //Check rows for winner
+    for (let j = 0; j <= 6; j = j + 3) {
         last = game.currentBoard[j];
         if (winner.winner != 'e') {
             winner.position = j / 3;
@@ -113,7 +118,8 @@ function tictactoeCheckForWin(game) {
         }
     }
     
-    for (let j = 0; j <= 2; j ++) {//check cols for winner
+    //check cols for winner
+    for (let j = 0; j <= 2; j ++) {
         last = game.currentBoard[j];
         if (winner.winner != 'e') {
             winner.position = j;
@@ -131,7 +137,8 @@ function tictactoeCheckForWin(game) {
         }
     }
 
-    for (let j = 0; j <= 4; j = j + 4) {//check diagonal for winner
+    //check diagonal for winner
+    for (let j = 0; j <= 4; j = j + 4) {
         last = game.currentBoard[j];
         if (winner.winner != 'e') {
             winner.position = 1;
@@ -147,7 +154,8 @@ function tictactoeCheckForWin(game) {
         }
     }
 
-    for (let j = 2; j <= 4; j = j+2) {//check reverse diagonal for winner
+    //check reverse diagonal for winner
+    for (let j = 2; j <= 4; j = j+2) {
         last = game.currentBoard[j];
         if (winner.winner != 'e') {
             winner.position = 2;
@@ -167,7 +175,8 @@ function tictactoeCheckForWin(game) {
     return winner;
 }
 
-function generateGame(gameType, gameName) {//Returns a game object with name gameName and type gameType
+//Returns a game object with name gameName and type gameType
+function generateGame(gameType, gameName) {
     if (gameType == 'tictactoe') {
         return {
             _id: gameName,
@@ -201,7 +210,8 @@ async function listDatabases(client) {
 
 }
 
-async function createGame(gameCollection, game) {//Adds a game object to the database
+//Adds a game object to the database
+async function createGame(gameCollection, game) {
     if (await gameCollection.findOne({ _id: game._id })) {
         console.log("Tried to create a game with a name that already exists: " + game._id );
     }else {
@@ -214,7 +224,8 @@ async function findGameByName(gameCollection, gameName) {
     return await gameCollection.find({ "_id": gameName }).toArray();
 }
 
-async function addUser(userCollection, username, password) {//Creates account. If success returns USER_ADDED if failure returns USER_ALREADY_EXISTS
+//Creates account. If success returns USER_ADDED if failure returns USER_ALREADY_EXISTS
+async function addUser(userCollection, username, password) {
     if (await userCollection.findOne({ _id: username })) {
         return 'USER_ALREADY_EXISTS';
     } else {
@@ -223,7 +234,8 @@ async function addUser(userCollection, username, password) {//Creates account. I
     }
 }
 
-async function authUser(userCollection, username, password) {//returns 'USER_AUTHED' if username:password combo is good, 'INVALID_PASSWORD' if user exists but password is wrong, and 'USER_DOES_NOT_EXIST' if user does not exist
+//returns 'USER_AUTHED' if username:password combo is good, 'INVALID_PASSWORD' if user exists but password is wrong, and 'USER_DOES_NOT_EXIST' if user does not exist
+async function authUser(userCollection, username, password) {
     const result = await userCollection.findOne({ _id: username });
     if (result) {
         if (result.password == password) {
@@ -236,7 +248,8 @@ async function authUser(userCollection, username, password) {//returns 'USER_AUT
     }
 }
 
-async function updateUserSessionID(userCollection, username, token) {//Updates session_id for user with username
+//Updates session_id for user with username
+async function updateUserSessionID(userCollection, username, token) {
     await userCollection.updateOne(
         { _id: username },
         {
