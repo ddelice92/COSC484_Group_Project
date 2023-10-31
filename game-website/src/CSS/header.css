@@ -1,7 +1,7 @@
 header {
     background-color: #111;
     min-height: 50px;
-    height: 7vmin;
+    height: 5vmin;
     width: 100%;
     display: flex;
     justify-content: flex-end;

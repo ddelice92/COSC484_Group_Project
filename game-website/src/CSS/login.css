@@ -9,7 +9,7 @@
 #formBox {
     height: 50%;
     width: 25%;
-    min-height: 350px;
+    min-height: 415px;
     min-width: 400px;
     border-radius: 8px;
     background-color: #111;
@@ -19,11 +19,28 @@
     flex-direction: column;
 }
 
-p {
+#formBox > p {
+    color: white;
+    font-family: Poppins;
+    font-size: 18px;
+    margin: 0;
+}
+
+#formBox > h1 {
     color: white;
     font-family: Poppins;
     font-size: 25px;
     margin: 0;
+}
+
+.link {
+    color: white;
+    transition: 0.2s;
+}
+
+.link:hover {
+    color: rgb(160, 160, 160);
+    transition: 0.2s;
 }
 
 form {
@@ -48,7 +65,7 @@ label {
     align-self: flex-start;
 }
 
-#loginButton {
+#button {
     width: 310px;
     height: 30px;
     margin: 15px;
@@ -61,7 +78,7 @@ label {
     transition: 0.2s;
 }
 
-#loginButton:hover {
+#button:hover {
     background-color: #4d4c4c;
     transition: 0.2s;
 }
