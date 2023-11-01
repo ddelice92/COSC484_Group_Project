@@ -3,32 +3,44 @@ import { useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import Header from "../components/header"
+import { useAuth } from '../context/user.context';
+import { useLocation, useNavigate } from "react-router-dom";
 import "../CSS/login.css";
 
 export default function Login() {
-  const [username, setUsername] = useState('');
-  const [pass, setPass] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
 
-  //Sends a post request to /login with username and password which returns token
-  const handleSubmit = async (e) => {
-      e.preventDefault();
-      const request = {
-          username: username,
-          password: pass
-      };
+    const { login } = useAuth();
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    
 
-      const response = await axios.post('/login', request).catch(function (error) {console.log(error);});
-      if (response) {//If the request is successful then the session token is set in local storage
-          const token = response.data.token;
-          localStorage.setItem('token', token);
-          console.log(token);
-          setIsLoggedIn(true);
-      } else {
-          console.log("failed to login with request: " + request.username);
-      }
-      
-  }
+    const redirect = () => {
+        const redirectTo = location.search.replace("?redirectTo=", "");
+        navigate(redirectTo ? redirectTo : "/user");
+    }
+
+    const handleLogin = async (e) => {
+        e.preventDefault(); // Prevent the form from submitting the traditional way.
+
+        try {
+        const response = await axios.post('/login', {
+            username,
+            password,
+        });
+
+        if (response.data.token) {
+            login(response.data.token);
+            redirect();
+        } 
+        else {
+        }
+        } 
+        catch (error) {
+            console.error(error);
+        }
+    };
 
   return (
     <div>
@@ -39,11 +51,11 @@ export default function Login() {
                     <h1>
                         Login
                     </h1>
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleLogin}>
                         <label for="text">Username</label>
                         <input value={username} onChange={(e) => setUsername(e.target.value)} type="text" id="username" name="username"></input>
                         <label for="password">Password</label>
-                        <input value={pass} onChange={(e) => setPass(e.target.value)} type="password" id="password" name="password"></input>
+                        <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" id="password" name="password"></input>
                         <button type="submit" id="button">Login</button>
                     </form>
                     <p>Don't have an account? <Link to="/signup" className='link'>Signup</Link></p>

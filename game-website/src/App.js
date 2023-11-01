@@ -7,21 +7,27 @@ import TicTacToe from './pages/TicTacToe';
 import Checkers from './pages/checkers';
 import ConnectFour from './pages/connect-four';
 import Signup from './pages/signup';
+import PrivateRoute from "./pages/PrivateRoute";
+import { AuthProvider } from './context/user.context';
 
 function App() {
   return (
     <div className="App">
       <BrowserRouter>
-        <Routes>
-          <Route index element={<Homepage />} />
-          <Route path="/homepage" element={<Homepage />} />
-          <Route exact path="/user" element={<User />} />
-          <Route path="/login" element={<Login />} />
-          <Route exact path="/signup" element={<Signup />} />
-          <Route path="/TicTacToe" element={<TicTacToe />} />
-          <Route path="/checkers" element={<Checkers />} />
-          <Route path="/connect-four" element={<ConnectFour />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+              <Route index element={<Homepage />} />
+              <Route path="/homepage" element={<Homepage />} />
+              <Route element={<PrivateRoute />}>
+                <Route exact path="/user" element={<User />} />
+              </Route>
+              <Route path="/login" element={<Login />} />
+              <Route exact path="/signup" element={<Signup />} />
+              <Route path="/TicTacToe" element={<TicTacToe />} />
+              <Route path="/checkers" element={<Checkers />} />
+              <Route path="/connect-four" element={<ConnectFour />} />
+            </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </div>
   );

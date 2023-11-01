@@ -11,7 +11,7 @@ export default function Homepage() {
         <div id="root">
             <head>
             </head>
-            <Header />
+                <Header />
             <body>
                 <div id="bodyContainer">
                     <div id="listContainer">
