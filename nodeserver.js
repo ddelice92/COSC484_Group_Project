@@ -81,6 +81,23 @@ async function main() {
         
 
     })
+    app.post('/register', async (req, res) => {//Attempts to create a new user, returns result:'USER_ADDED' or result:'USER_ALREADY_EXISTS'
+        const username = req.body.username;
+        const password = req.body.password;
+
+        const result = await addUser(userCollection, username, password);
+
+        if (result == 'USER_ADDED') {
+            console.log(username + " added to database");
+            res.json({ result });
+        } else {
+            res.status(200);
+            res.json({result});
+        }
+
+
+    })
+
 
     
 
