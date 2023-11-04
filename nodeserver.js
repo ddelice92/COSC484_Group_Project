@@ -3,6 +3,7 @@ const { MongoClient } = require('mongodb');
 const express = require('express')
 const jwt = require('jsonwebtoken');
 var cors = require('cors');
+const websocket = require('ws');
 const app = express();
 const port = 3001;
 
@@ -48,6 +49,29 @@ async function main() {
     app.listen(port, () => {
         console.log("Server Listening on PORT:", port);
     });
+    const server = new websocket.Server({ port: 8080 }, () => {
+        console.log('Websocket started on port 8080');
+    });
+
+    server.on('connection', async (socket) => {
+        socket.on('message', async (message) => {
+            try {
+                jsonmessage = JSON.parse(message);
+                console.log(`Recieved message from client ${JSON.stringify(jsonmessage)}`);
+                if (jsonmessage.type == 'getGame') {
+                    const gameData = await findGameByName(gameCollection, jsonmessage.message)
+                    console.log(await gameData[0]);
+                    socket.send(JSON.stringify(gameData[0]));
+                }
+                
+            } catch (e) {
+                jsonmessage = {}
+                console.log(`Recieved message from client ${message}`);
+            }
+            
+            
+        });
+    })
     
     // returns game object of game with name gamename
     app.get("/api/getgamedata/:gamename", async (request, response) => {
@@ -97,6 +121,8 @@ async function main() {
 
 
     })
+
+
 
 
     
