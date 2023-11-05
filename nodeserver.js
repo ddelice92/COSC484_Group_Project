@@ -3,6 +3,7 @@ const { MongoClient } = require('mongodb');
 const express = require('express')
 const jwt = require('jsonwebtoken');
 var cors = require('cors');
+const websocket = require('ws');
 const app = express();
 const port = 3001;
 
@@ -48,6 +49,29 @@ async function main() {
     app.listen(port, () => {
         console.log("Server Listening on PORT:", port);
     });
+    const server = new websocket.Server({ port: 8080 }, () => {
+        console.log('Websocket started on port 8080');
+    });
+
+    server.on('connection', async (socket) => {
+        socket.on('message', async (message) => {
+            try {
+                jsonmessage = JSON.parse(message);
+                console.log(`Recieved message from client ${JSON.stringify(jsonmessage)}`);
+                if (jsonmessage.type == 'getGame') {
+                    const gameData = await findGameByName(gameCollection, jsonmessage.message)
+                    console.log(await gameData[0]);
+                    socket.send(JSON.stringify(gameData[0]));
+                }
+                
+            } catch (e) {
+                jsonmessage = {}
+                console.log(`Recieved message from client ${message}`);
+            }
+            
+            
+        });
+    })
     
     // returns game object of game with name gamename
     app.get("/api/getgamedata/:gamename", async (request, response) => {
@@ -81,6 +105,25 @@ async function main() {
         
 
     })
+    app.post('/register', async (req, res) => {//Attempts to create a new user, returns result:'USER_ADDED' or result:'USER_ALREADY_EXISTS'
+        const username = req.body.username;
+        const password = req.body.password;
+
+        const result = await addUser(userCollection, username, password);
+
+        if (result == 'USER_ADDED') {
+            console.log(username + " added to database");
+            res.json({ result });
+        } else {
+            res.status(200);
+            res.json({result});
+        }
+
+
+    })
+
+
+
 
     
 
