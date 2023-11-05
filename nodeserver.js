@@ -44,6 +44,8 @@ async function main() {
     console.log(game.currentBoard)
     console.log(tictactoeCheckForWin(game));
 
+    console.log(await getUserData(userCollection,'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InRlc3R1c2VyIiwiaWF0IjoxNjk5MjA2NDMyLCJleHAiOjE2OTkyMTAwMzJ9.-01LoTVtIJ8oHgcvMRIJbHi9YfZFx1nygS8oF8SGW4U'))
+
 
 
     app.listen(port, () => {
@@ -105,6 +107,19 @@ async function main() {
         
 
     })
+    app.post('/getuserdata', async (req, res) => {
+        const token = req.body.token;
+        const data = await getUserData(userCollection, token)
+        if (data) {
+            res.json({ data });
+        } else {
+            res.status(401);
+            res.json({});
+        }
+
+
+    })
+
     app.post('/register', async (req, res) => {//Attempts to create a new user, returns result:'USER_ADDED' or result:'USER_ALREADY_EXISTS'
         const username = req.body.username;
         const password = req.body.password;
@@ -265,6 +280,10 @@ async function createGame(gameCollection, game) {
 
 async function findGameByName(gameCollection, gameName) {
     return await gameCollection.find({ "_id": gameName }).toArray();
+}
+
+async function getUserData(userCollection, userToken) {
+    return await userCollection.findOne({ session_id: userToken }, { projection: { password: 0, session_id: 0 } });
 }
 
 //Creates account. If success returns USER_ADDED if failure returns USER_ALREADY_EXISTS
