@@ -1,6 +1,6 @@
 import React from "react"
 import "../App.css"
-import "../CSS/homepage.css"
+import s from "../CSS/homepage.module.css"
 import Header from "../components/header"
 import TicTacToe from "../images/TicTacToe.png"
 import Checkers from "../images/checker-board.png"
@@ -13,41 +13,41 @@ export default function Homepage() {
             </head>
                 <Header />
             <body>
-                <div id="bodyContainer">
-                    <div id="listContainer">
+                <div id={s.bodyContainer}>
+                    <div id={s.listContainer}>
                         
-                        <div class="gameContainer">
-                            <div class="game">
+                        <div className={s.gameContainer}>
+                            <div className={s.game}>
                                 <a href='/TicTacToe'>
-                                    <img class="gameImage" src={TicTacToe} alt="Tic-Tac-Toe"></img>
+                                    <img className={s.gameImage} src={TicTacToe} alt="Tic-Tac-Toe"></img>
                                 </a>
-                                <div class="gameImage-outline"></div>
+                                <div className={s.gameImage_outline}></div>
                             </div>
-                            <div class="gameName">
+                            <div className={s.gameName}>
                                 Tic-Tac-Toe
                             </div>
                         </div>
 
-                        <div class="gameContainer">
-                            <div class="game">
+                        <div className={s.gameContainer}>
+                            <div className={s.game}>
                                 <a href="/checkers">
-                                    <img class="gameImage" src={Checkers} alt="Checkers"></img>
+                                    <img className={s.gameImage} src={Checkers} alt="Checkers"></img>
                                 </a>
-                                <div class="gameImage-outline"></div>
+                                <div className={s.gameImage_outline}></div>
                             </div>
-                            <div class="gameName">
+                            <div className={s.gameName}>
                                 Checkers
                             </div>
                         </div>
 
-                        <div class="gameContainer">
-                            <div class="game">
+                        <div className={s.gameContainer}>
+                            <div className={s.game}>
                                 <a href="/connect-four">
-                                    <img class="gameImage" src={ConnectFour} alt="Connect Four"></img>
+                                    <img className={s.gameImage} src={ConnectFour} alt="Connect Four"></img>
                                 </a>
-                                <div class="gameImage-outline"></div>
+                                <div className={s.gameImage_outline}></div>
                             </div>
-                            <div class="gameName">
+                            <div className={s.gameName}>
                                 Connect Four
                             </div>
                         </div>

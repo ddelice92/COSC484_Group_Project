@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import Header from "../components/header"
 import { useAuth } from '../context/user.context';
 import { useLocation, useNavigate } from "react-router-dom";
-import "../CSS/login.css";
+import s from "../CSS/login.module.css";
 
 export default function Login() {
     const navigate = useNavigate();
@@ -46,8 +46,8 @@ export default function Login() {
     <div>
         <Header />
         <body>
-            <div id="formContainer">
-                <div id="formBox">
+            <div id={s.formContainer}>
+                <div id={s.formBox}>
                     <h1>
                         Login
                     </h1>
@@ -56,9 +56,9 @@ export default function Login() {
                         <input value={username} onChange={(e) => setUsername(e.target.value)} type="text" id="username" name="username"></input>
                         <label for="password">Password</label>
                         <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" id="password" name="password"></input>
-                        <button type="submit" id="button">Login</button>
+                        <button type="submit" id={s.button}>Login</button>
                     </form>
-                    <p>Don't have an account? <Link to="/signup" className='link'>Signup</Link></p>
+                    <p>Don't have an account? <Link to="/signup" className={s.link}>Signup</Link></p>
                 </div> 
             </div>
         </body>

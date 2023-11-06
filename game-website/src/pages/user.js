@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react"
 import { useAuth } from '../context/user.context';
 import { Navigate } from 'react-router-dom';
+import LogoutIcon from '@mui/icons-material/Logout';
 import Header from "../components/header"
 import axios from 'axios';
+import s from '../CSS/user.module.css'
 
 export default function User() {
     const { token, logout } = useAuth();
@@ -30,11 +32,6 @@ export default function User() {
         return <Navigate to="/login" />;
     }
 
-
- 
-    
-    
-
     const handleLogout = () => {
         logout();
     };
@@ -42,10 +39,24 @@ export default function User() {
     return (
         <div>
             <Header />
-            <h1>Username: {userData._id}</h1>
-            <h1>Total games won: {userData.wins}</h1>
-            <h1>Total games played: {userData.played}</h1>
-            <button onClick={handleLogout}>Logout</button>
+            <div id={s.container}>
+                <div id={s.main}>
+                    <div id={s.main_left}>
+                        <h1 class={s.main_headers}>{userData._id}</h1>
+                        <button id={s.logoutButton} onClick={handleLogout}>
+                            <LogoutIcon />
+                            &nbsp;
+                            Logout
+                        </button>
+                    </div>
+                    <div id={s.main_right}>
+                        <h1 class={s.main_headers}>Statistics</h1>
+                        <p class={s.stats}>Total games won: {userData.wins}</p>
+                        <p class={s.stats}>Total games played: {userData.played}</p>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     )
 }
