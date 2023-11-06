@@ -7,6 +7,8 @@
 
 .canvasContainer{
     margin:50px;
+    background-color:lightgrey;
+    border-radius:10px;
 }
 
 .gameForm {
