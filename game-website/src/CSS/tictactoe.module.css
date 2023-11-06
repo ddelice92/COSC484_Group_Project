@@ -2,6 +2,11 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction:column;
+}
+
+.canvasContainer{
+    margin:50px;
 }
 
 .gameForm {

@@ -108,18 +108,6 @@ export default function TicTacToe() {
     };
 
 
-
-    const renderGameData = (gameData) => {//Renders the game data as a list
-        return (
-            <ul>
-                {gameData.map((element, index) => (
-                    <li key={index}>{element}</li>
-                ))}
-            </ul>
-        );
-    };
-
-
     return (
         <div>
             <Header />
@@ -129,10 +117,9 @@ export default function TicTacToe() {
                     <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename"></input>
                     <button type="submit" id="button">Get game data</button>
                 </form>
-                <canvas ref={canvasRef} onClick={handleClick} id="tic-tac-toe-canvas" width="300" height="300">
-                </canvas>
-                <div>
-                    {renderGameData(gameData)}
+                <div className={s.canvasContainer}>
+                    <canvas ref={canvasRef} onClick={handleClick} id="tic-tac-toe-canvas" width="300" height="300">
+                    </canvas>
                 </div>
             </div>
         </div>
