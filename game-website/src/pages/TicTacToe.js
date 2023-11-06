@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import Header from "../components/header"
 import useWebSocket from 'react-use-websocket';
+import s from "../CSS/tictactoe.module.css"
 
 
 export default function TicTacToe() {
@@ -43,16 +44,16 @@ export default function TicTacToe() {
     return (
         <div>
             <Header />
-            <h1>Tic-Tac-Toe</h1>
-            <form onSubmit={handleSubmit}>
-                <label for="text">Game name</label>
-                <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename"></input>
-                <button type="submit" id="button">Get game data</button>
-            </form>
-            <div>
-                {renderGameData(gameData)}
+            <div className={s.container}>
+                <form className={s.gameForm} onSubmit={handleSubmit}>
+                    <label for="text">Game name</label>
+                    <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename"></input>
+                    <button type="submit" id="button">Get game data</button>
+                </form>
+                <div>
+                    {renderGameData(gameData)}
+                </div>
             </div>
-
         </div>
     )
 }

@@ -1,7 +1,8 @@
 import React from "react";
 import { useAuth } from '../context/user.context';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
-import "../CSS/header.css"
+import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
+import s from "../CSS/header.module.css"
 
 export default function Header() {
     const { token } = useAuth();
@@ -13,11 +14,11 @@ export default function Header() {
                     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"></link>
                 </head>
                 <header>
-                <a id="home" href='/homepage'>
-                    <HomeOutlinedIcon id="homeIcon"></HomeOutlinedIcon>
+                <a className={s.icon} href='/homepage'>
+                    <HomeOutlinedIcon />
                 </a>
-                <a id="user" href='/login'>
-                    <i class="material-icons">person_outline</i>
+                <a className={s.icon} href='/login'>
+                    <PersonOutlineOutlinedIcon />
                 </a>
                 </header>
             </div>
@@ -30,11 +31,11 @@ export default function Header() {
                     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"></link>
                 </head>
                 <header>
-                <a id="home" href='/homepage'>
-                    <HomeOutlinedIcon id="homeIcon"></HomeOutlinedIcon>
+                <a className={s.icon} href='/homepage'>
+                    <HomeOutlinedIcon></HomeOutlinedIcon>
                 </a>
-                <a id="user" href='/user'>
-                    <i class="material-icons">person_outline</i>
+                <a className={s.icon} href='/user'>
+                    <PersonOutlineOutlinedIcon />
                 </a>
                 </header>
             </div>
