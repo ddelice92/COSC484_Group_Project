@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/user.context';
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from 'axios';
+import s from "../CSS/login.module.css"
 
 
 export default function Signup() {
@@ -59,14 +60,14 @@ export default function Signup() {
         <div>
             <Header />
             <body>
-                <div id="formContainer">
-                    <div id="formBox">
+                <div id={s.formContainer}>
+                    <div id={s.formBox}>
                         <h1>
                             Signup
                         </h1>
                         <form onSubmit={handleSignup}>
                             <label for="text">Username</label>
-                            <input type="text" onChange={(e) => setUsername(e.target.value)} id="username" name="username"></input>
+                            <input type="text" onChange={(e) => setUsername(e.target.value)} id={s.username} name="username"></input>
 
                             <label for="password">Password</label>
                             <input type="password" onChange={(e) => setPassword(e.target.value)} id="password" name="password"></input>
@@ -74,9 +75,9 @@ export default function Signup() {
                             <label for="confirmPassword">Confirm Password</label>
                             <input type="password" onChange={(e) => setPasswordConf(e.target.value)} id="confirmPassword" name="confirmPassword"></input>
 
-                            <button type="submit" id="button">Signup</button>
+                            <button type="submit" id={s.button}>Signup</button>
                         </form>
-                        <p>Have an account already? <Link to="/login" className='link'>Login</Link></p>
+                        <p>Have an account already? <Link to="/login" className={s.link}>Login</Link></p>
                     </div> 
                 </div>
             </body>

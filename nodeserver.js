@@ -27,7 +27,7 @@ async function main() {
     try {
         await client.connect();
         await listDatabases(client);
-        await createGame(gameCollection, generateGame('tictactoe', 'samplegametictactoe'));
+        await createGame(gameCollection, generateGame('tictactoe', 'tictactoewithmoves'));
         await createGame(gameCollection, generateGame('checkers', 'samplegamecheckers'));
         console.log(await addUser(userCollection, 'testuser', 'testpassword'));
         await authUser(userCollection, 'testuser', 'notreal');
@@ -37,12 +37,15 @@ async function main() {
         
     }
 
-    game = generateGame('tictactoe', 'win');
-    tictactoeMakeMove(game, 2, 'x');
-    tictactoeMakeMove(game, 4, 'x');
-    tictactoeMakeMove(game, 6, 'x');
-    console.log(game.currentBoard)
-    console.log(tictactoeCheckForWin(game));
+    const game = await findGameByName(gameCollection, 'tictactoewithmoves')
+    await tictactoeMakeMove(gameCollection, game, 0, 'x');
+    await tictactoeMakeMove(gameCollection, game, 1, 'x');
+    await tictactoeMakeMove(gameCollection, game, 2, 'x');
+    await tictactoeMakeMove(gameCollection, game, 8, 'o');
+    await tictactoeMakeMove(gameCollection, game, 7, 'o');
+    await tictactoeMakeMove(gameCollection, game, 6, 'o');
+    console.log(game);
+
 
 
 
@@ -60,8 +63,8 @@ async function main() {
                 console.log(`Recieved message from client ${JSON.stringify(jsonmessage)}`);
                 if (jsonmessage.type == 'getGame') {
                     const gameData = await findGameByName(gameCollection, jsonmessage.message)
-                    console.log(await gameData[0]);
-                    socket.send(JSON.stringify(gameData[0]));
+                    console.log(await gameData);
+                    socket.send(JSON.stringify(gameData));
                 }
                 
             } catch (e) {
@@ -105,6 +108,19 @@ async function main() {
         
 
     })
+    app.post('/getuserdata', async (req, res) => {
+        const token = req.body.token;
+        const data = await getUserData(userCollection, token)
+        if (data) {
+            res.json({ data });
+        } else {
+            res.status(401);
+            res.json({});
+        }
+
+
+    })
+
     app.post('/register', async (req, res) => {//Attempts to create a new user, returns result:'USER_ADDED' or result:'USER_ALREADY_EXISTS'
         const username = req.body.username;
         const password = req.body.password;
@@ -129,10 +145,16 @@ async function main() {
 
 }
 
-function tictactoeMakeMove(game, space, side) {
+async function tictactoeMakeMove(gameCollection, game, space, side) {
     if (game.currentBoard[space] == 'e') {
         game.currentBoard[space] = side;
+        gameCollection.updateOne({ _id: game._id }, {
+            "$set": {
+                currentBoard: game.currentBoard
+            }
+        })
     }
+
 }
 
 function tictactoeCheckForWin(game) {
@@ -264,7 +286,11 @@ async function createGame(gameCollection, game) {
 }
 
 async function findGameByName(gameCollection, gameName) {
-    return await gameCollection.find({ "_id": gameName }).toArray();
+    return await gameCollection.findOne({ "_id": gameName });
+}
+
+async function getUserData(userCollection, userToken) {
+    return await userCollection.findOne({ session_id: userToken }, { projection: { password: 0, session_id: 0 } });
 }
 
 //Creates account. If success returns USER_ADDED if failure returns USER_ALREADY_EXISTS

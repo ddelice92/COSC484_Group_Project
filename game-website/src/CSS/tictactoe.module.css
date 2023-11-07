@@ -1,0 +1,16 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction:column;
+}
+
+.canvasContainer{
+    margin:50px;
+    background-color:lightgrey;
+    border-radius:10px;
+}
+
+.gameForm {
+    margin-top: 5rem;
+}
