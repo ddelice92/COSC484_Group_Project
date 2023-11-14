@@ -27,7 +27,7 @@ async function main() {
     try {
         await client.connect();
         await listDatabases(client);
-        await createGame(gameCollection, generateGame('tictactoe', 'tictactoewithmoves'));
+        await createGame(gameCollection, generateGame('tictactoe', 'demogame'));
         await createGame(gameCollection, generateGame('checkers', 'samplegamecheckers'));
         console.log(await addUser(userCollection, 'testuser', 'testpassword'));
         await authUser(userCollection, 'testuser', 'notreal');
@@ -65,6 +65,10 @@ async function main() {
                     const gameData = await findGameByName(gameCollection, jsonmessage.message)
                     console.log(await gameData);
                     socket.send(JSON.stringify(gameData));
+                }
+                if (jsonmessage.type == 'makeMove') {
+                    console.log('trying to make move');
+                    await tictactoeMakeMove(gameCollection, await findGameByName(gameCollection, jsonmessage.gameName), jsonmessage.message[0],jsonmessage.message[1])
                 }
                 
             } catch (e) {

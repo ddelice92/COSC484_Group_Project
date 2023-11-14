@@ -13,6 +13,7 @@ export default function TicTacToe() {
     const [gameName, setGameName] = useState('');
     const [gameData, setGameData] = useState([]);//The current board for the game
     const [selectedBoxes, setSelectedBoxes] = useState([]);
+    const [move, setMove] = useState('');
 
     const canvasRef = useRef(null);
 
@@ -22,6 +23,8 @@ export default function TicTacToe() {
         if (lastJsonMessage !== null) {//Whenever a json message is received, refresh gameData 
             setGameData(lastJsonMessage.currentBoard);
             console.log(gameData);
+        } else {
+            setGameData(["e", "e", "e", "e", "e", "e", "e", "e", "e",]);
         }
     }, [lastJsonMessage]);
 
@@ -43,6 +46,18 @@ export default function TicTacToe() {
         }
         sendJsonMessage(message);//Sends a json message to the node server to request data for gameName
 
+
+    }
+
+    const handleMove = (e) => {
+        e.preventDefault();
+        const message = {
+            type: 'makeMove',
+            message: [selectedBoxes, move],
+            gameName: gameName
+        }
+        console.log(message);
+        sendJsonMessage(message);
 
     }
 
@@ -104,6 +119,10 @@ export default function TicTacToe() {
         const x = Math.trunc(event.clientX - canvasRect.left);
         const y = Math.trunc(event.clientY - canvasRect.top);
 
+        const cell = Math.trunc(x / 100) + (Math.trunc(y / 100) * 3);
+        setSelectedBoxes(cell);
+        console.log(cell);
+
         console.log(`${x} + ${y}`);
     };
 
@@ -116,6 +135,11 @@ export default function TicTacToe() {
                     <label for="text">Game name</label>
                     <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename"></input>
                     <button type="submit" id="button">Get game data</button>
+                </form>
+                <form className={s.gameForm} onSubmit={handleMove}>
+                    <label for="text">Move {selectedBoxes}</label>
+                    <input value={move} onChange={(e) => setMove(e.target.value)} type="text" id="movename" name="movename"></input>
+                    <button type="submit" id="button">Submit move</button>
                 </form>
                 <div className={s.canvasContainer}>
                     <canvas ref={canvasRef} onClick={handleClick} id="tic-tac-toe-canvas" width="300" height="300">
