@@ -1,0 +1,15 @@
+#container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction:column;
+}
+
+#canvasContainer {
+    margin-top: 7rem;
+}
+
+#checkersCanvas {
+    width: 400px;
+    height: 400px;
+}
