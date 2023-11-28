@@ -20,12 +20,12 @@ function App() {
               <Route path="/homepage" element={<Homepage />} />
               <Route element={<PrivateRoute />}>
                 <Route exact path="/user" element={<User />} />
+                <Route path="/TicTacToe" element={<TicTacToe />} />
+                <Route path="/checkers" element={<Checkers />} />
+                <Route path="/connect-four" element={<ConnectFour />} />
               </Route>
               <Route path="/login" element={<Login />} />
               <Route exact path="/signup" element={<Signup />} />
-              <Route path="/TicTacToe" element={<TicTacToe />} />
-              <Route path="/checkers" element={<Checkers />} />
-              <Route path="/connect-four" element={<ConnectFour />} />
             </Routes>
         </AuthProvider>
       </BrowserRouter>
