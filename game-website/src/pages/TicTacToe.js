@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react"
 import Header from "../components/header"
 import useWebSocket from 'react-use-websocket';
+import AuthUser from '../components/authUser'
 import s from "../CSS/tictactoe.module.css"
 
 
@@ -129,6 +130,7 @@ export default function TicTacToe() {
 
     return (
         <div>
+            <AuthUser />
             <Header />
             <div className={s.container}>
                 <form className={s.gameForm} onSubmit={handleSubmit}>
