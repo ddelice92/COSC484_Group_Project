@@ -3,48 +3,59 @@ import Header from "../components/header"
 import useWebSocket from 'react-use-websocket';
 import AuthUser from '../components/authUser'
 import s from "../CSS/tictactoe.module.css"
+import { useAuth } from '../context/user.context';
+import { Select } from "@mui/material";
 
 
 export default function TicTacToe() {
+    const { token } = useAuth();
+    var [gameName, setGameName] = useState('');
     const { sendJsonMessage, lastJsonMessage } = useWebSocket('ws://localhost:8080', {
         shouldReconnect: (closeEvent) => true,
         reconnectInterval: 1,
-        reconnectAttempts: 5
+        reconnectAttempts: 5,
     });
-    const [gameName, setGameName] = useState('');
     const [gameData, setGameData] = useState([]);//The current board for the game
     const [selectedBoxes, setSelectedBoxes] = useState([]);
-    const [move, setMove] = useState('');
+    const [side, setSide] = useState('');
+
 
     const canvasRef = useRef(null);
 
 
     useEffect(() => {
-
+        console.log(JSON.stringify(lastJsonMessage));
         if (lastJsonMessage !== null) {//Whenever a json message is received, refresh gameData 
-            setGameData(lastJsonMessage.currentBoard);
-            console.log(gameData);
+            if (lastJsonMessage.type === "success") {
+                setSide(lastJsonMessage.side);
+            } else if (lastJsonMessage.error) {
+                if (lastJsonMessage.error === "GAME_FULL") {
+                    alert("Tried to join a full game");
+                }
+            } if (lastJsonMessage.type === "update") {
+                setGameData(lastJsonMessage.game.currentBoard);
+            }
         } else {
             setGameData(["e", "e", "e", "e", "e", "e", "e", "e", "e",]);
         }
     }, [lastJsonMessage]);
 
-    useEffect(() => {
-        console.log(selectedBoxes)
-    },[selectedBoxes])
 
     useEffect(() => {
         if (gameData != null) {
             drawBoard();
         }
-    },[gameData]);
+    },[gameData, selectedBoxes]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
         const message = {
-            type: 'getGame',
-            message: gameName
+            type: 'connectGame',
+            gameName: gameName,
+            session_id: token,
+            gameType: "tictactoe"
         }
+
         sendJsonMessage(message);//Sends a json message to the node server to request data for gameName
 
 
@@ -54,11 +65,13 @@ export default function TicTacToe() {
         e.preventDefault();
         const message = {
             type: 'makeMove',
-            message: [selectedBoxes, move],
-            gameName: gameName
+            message: [selectedBoxes, side],
+            gameName: gameName,
+            gameType: "tictactoe"
         }
         console.log(message);
         sendJsonMessage(message);
+
 
     }
 
@@ -89,7 +102,13 @@ export default function TicTacToe() {
         context.moveTo(200, 0);
         context.lineTo(200, 300);
         context.stroke();
-
+        if (selectedBoxes != null) {
+            context.lineWidth = 5;
+            const rectx = ((selectedBoxes) % 3) * 100;
+            const recty = Math.trunc((selectedBoxes / 3)) * 100;
+            context.strokeRect(rectx, recty, 100, 100)
+            context.lineWidth = 1;
+        }
         for (let i = 0; i < 9; i = i+3) {
             for (let j = 0; j < 3; j++) {//Draws x
                 if (gameData[i + j] === 'x') {
@@ -123,8 +142,6 @@ export default function TicTacToe() {
         const cell = Math.trunc(x / 100) + (Math.trunc(y / 100) * 3);
         setSelectedBoxes(cell);
         console.log(cell);
-
-        console.log(`${x} + ${y}`);
     };
 
 
@@ -139,8 +156,7 @@ export default function TicTacToe() {
                     <button type="submit" id="button">Get game data</button>
                 </form>
                 <form className={s.gameForm} onSubmit={handleMove}>
-                    <label for="text">Move {selectedBoxes}</label>
-                    <input value={move} onChange={(e) => setMove(e.target.value)} type="text" id="movename" name="movename"></input>
+                    <div>{side}</div>
                     <button type="submit" id="button">Submit move</button>
                 </form>
                 <div className={s.canvasContainer}>

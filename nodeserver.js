@@ -11,6 +11,7 @@ async function main() {
     const client = new MongoClient(process.env.MONGO_URI);
     const gameCollection = client.db("Game").collection("Games");
     const userCollection = client.db("Game").collection("Users");
+    const socketMap = new Map();
 
     const secretKey = process.env.SECRET_KEY;
 
@@ -27,7 +28,7 @@ async function main() {
     try {
         await client.connect();
         await listDatabases(client);
-        await createGame(gameCollection, generateGame('tictactoe', 'demogame'));
+        await createGame(gameCollection, generateGame('tictactoe', 'samplegametictactoe'));
         await createGame(gameCollection, generateGame('checkers', 'samplegamecheckers'));
         console.log(await addUser(userCollection, 'testuser', 'testpassword'));
         await authUser(userCollection, 'testuser', 'notreal');
@@ -44,7 +45,6 @@ async function main() {
     await tictactoeMakeMove(gameCollection, game, 8, 'o');
     await tictactoeMakeMove(gameCollection, game, 7, 'o');
     await tictactoeMakeMove(gameCollection, game, 6, 'o');
-    console.log(game);
 
 
 
@@ -57,19 +57,99 @@ async function main() {
     });
 
     server.on('connection', async (socket) => {
+        socketInfo = {
+            gameName: "",
+            gameType: "",
+            session_id: ""
+        }
         socket.on('message', async (message) => {
             try {
                 jsonmessage = JSON.parse(message);
                 console.log(`Recieved message from client ${JSON.stringify(jsonmessage)}`);
-                if (jsonmessage.type == 'getGame') {
-                    const gameData = await findGameByName(gameCollection, jsonmessage.message)
-                    console.log(await gameData);
-                    socket.send(JSON.stringify(gameData));
+                if (jsonmessage.gameType == 'tictactoe') {
+                    if (jsonmessage.type == 'heartbeat') {
+                        const gameData = await findGameByName(gameCollection, socketinfo.gameName)
+                        console.log(await gameData);
+                        socket.send(JSON.stringify(gameData));
+                    }
+                    if (jsonmessage.type == 'makeMove') {
+                        console.log('trying to make move');
+                        console.log("socketmap size: " + socketMap.size)
+                        const gameData = await findGameByName(gameCollection, jsonmessage.gameName)
+
+                        const moveMessage = {
+                            type: "update",
+                            game: gameData
+                        }
+                        await tictactoeMakeMove(gameCollection, gameData, jsonmessage.message[0], jsonmessage.message[1])
+                        broadcastGame(socketMap, socketInfo.gameName,moveMessage)
+
+
+                    }
+                    if (jsonmessage.type == 'connectGame') {
+                        const game = await findGameByName(gameCollection, jsonmessage.gameName)
+                        const moveMessage = {
+                            type: "update",
+                            game: game
+                        }
+                        socketInfo.gameName = jsonmessage.gameName;
+                        socketInfo.gameType = jsonmessage.gameType;
+                        socketInfo.session_id = jsonmessage.session_id;
+                        socketMap.set(socket, socketInfo);
+                        if (game == null) {
+                            await createGame(gameCollection, generateGame(socketInfo.gameType, socketInfo.gameName));
+                            await addUserToGame(gameCollection, socketInfo.gameName, socketInfo.session_id, "x");
+                            const response = {
+                                type: "success",
+                                side: 'x'
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, {
+                                type: "update",
+                                game: await findGameByName(gameCollection, socketInfo.gameName)
+                            })
+                            socket.send(JSON.stringify(response));
+                        } else if (game && game.gameType == "tictactoe" && game.o == null && game.x != socketInfo.session_id) {
+                            await addUserToGame(gameCollection, socketInfo.gameName, socketInfo.session_id, "o");
+                            const response = {
+                                type: "success",
+                                side: "o"
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+                            socket.send(JSON.stringify(response));
+                        } else if (game.x == socketInfo.session_id) {
+                            const response = {
+                                type: "success",
+                                side: "x"
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+                            socket.send(JSON.stringify(response));
+                        } else if (game.o == socketInfo.session_id) {
+                            const response = {
+                                type: "success",
+                                side: "o"
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+                            socket.send(JSON.stringify(response));
+                        } else if (game.o != null && game.x != null) {
+                            const response = {
+                                type: "error",
+                                error: "GAME_FULL"
+                            }
+                            socket.send(JSON.stringify(response));
+                            console.log("gf");
+                        } else {
+
+                        }
+
+
+
+
+                        console.log('Adding ' + socketInfo.session_id + " to " + gameName);
+
+                    }
+
                 }
-                if (jsonmessage.type == 'makeMove') {
-                    console.log('trying to make move');
-                    await tictactoeMakeMove(gameCollection, await findGameByName(gameCollection, jsonmessage.gameName), jsonmessage.message[0],jsonmessage.message[1])
-                }
+                
                 
             } catch (e) {
                 jsonmessage = {}
@@ -147,6 +227,15 @@ async function main() {
 
     
 
+}
+
+function broadcastGame(socketMap, gameName, message) {
+    socketMap.forEach((data, socket, m) => {
+        if (data.gameName == gameName) {
+            console.log(data.gamename + ":"+ data.session_id)
+            socket.send(JSON.stringify(message));
+        }
+    });
 }
 
 async function tictactoeMakeMove(gameCollection, game, space, side) {
@@ -250,7 +339,9 @@ function generateGame(gameType, gameName) {
         return {
             _id: gameName,
             gameType: "tictactoe",
-            currentBoard: ["e", "e", "e", "e", "e", "e", "e", "e", "e"]
+            currentBoard: ["e", "e", "e", "e", "e", "e", "e", "e", "e"],
+            x: null,
+            o: null
         }
     } else if (gameType == "checkers") {
         return {
@@ -264,7 +355,9 @@ function generateGame(gameType, gameName) {
                 "e", "e", "e", "e", "e", "e", "e", "e",
                 "b", "e", "b", "e", "b", "e", "b", "e",
                 "e", "b", "e", "b", "e", "b", "e", "b",
-                "b", "e", "b", "e", "b", "e", "b", "e"]
+                "b", "e", "b", "e", "b", "e", "b", "e"],
+            w: "",
+            b: ""
             }
         }else {
             console.error("tried to create a game of invalid gameType");
@@ -305,6 +398,52 @@ async function addUser(userCollection, username, password) {
         await userCollection.insertOne({ _id: username, password: password, session_id: '', wins: 0, played: 0});
         return 'USER_ADDED';
     }
+}
+
+async function addUserToGame(gameCollection, gameName, userSessionId, side) {
+    const game = await findGameByName(gameCollection, gameName);
+    if (game.gameType == "tictactoe" && side == "x" && game.x == null) {
+        console.log(game);
+        await gameCollection.updateOne(
+            { _id: gameName },
+            {
+                "$set": {
+                    x: userSessionId
+                }
+            }
+        );
+    } else if (game.gameType == "tictactoe" && side == "o" && game.o == null) {
+        await gameCollection.updateOne(
+            { _id: gameName },
+            {
+                "$set": {
+                    o: userSessionId
+                }
+            }
+        );
+    }
+
+    if (game.gameType == "checkers" && side == "w" && game.w == null) {
+        await gameCollection.updateOne(
+            { _id: gameName },
+            {
+                "$set": {
+                    w: userSessionId
+                }
+            }
+        );
+    } else if (game.gameType == "checkers" && side == "b" && game.b == null) {
+        await gameCollection.updateOne(
+            { _id: gameName },
+            {
+                "$set": {
+                    b: userSessionId
+                }
+            }
+        );
+    }
+
+
 }
 
 //returns 'USER_AUTHED' if username:password combo is good, 'INVALID_PASSWORD' if user exists but password is wrong, and 'USER_DOES_NOT_EXIST' if user does not exist
