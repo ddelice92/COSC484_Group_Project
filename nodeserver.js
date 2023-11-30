@@ -82,6 +82,7 @@ async function main() {
                             game: gameData
                         }
                         await tictactoeMakeMove(gameCollection, gameData, jsonmessage.message[0], jsonmessage.message[1])
+                        moveMessage.game = await findGameByName(gameCollection, jsonmessage.gameName);
                         broadcastGame(socketMap, socketInfo.gameName,moveMessage)
 
 
@@ -105,7 +106,7 @@ async function main() {
                             }
                             broadcastGame(socketMap, socketInfo.gameName, {
                                 type: "update",
-                                game: await findGameByName(gameCollection, socketInfo.gameName)
+                                game: await findGameByName(gameCollection, socketInfo.gameName),
                             })
                             socket.send(JSON.stringify(response));
                         } else if (game && game.gameType == "tictactoe" && game.o == null && game.x != socketInfo.session_id) {
@@ -239,11 +240,18 @@ function broadcastGame(socketMap, gameName, message) {
 }
 
 async function tictactoeMakeMove(gameCollection, game, space, side) {
-    if (game.currentBoard[space] == 'e') {
+    next = '';
+    if (game.nextToMove == 'x') {
+        next = 'o';
+    } else {
+        next = 'x';
+    }
+    if (game.currentBoard[space] == 'e' && game.nextToMove == side) {
         game.currentBoard[space] = side;
         gameCollection.updateOne({ _id: game._id }, {
             "$set": {
-                currentBoard: game.currentBoard
+                currentBoard: game.currentBoard,
+                nextToMove: next
             }
         })
     }
@@ -340,6 +348,7 @@ function generateGame(gameType, gameName) {
             _id: gameName,
             gameType: "tictactoe",
             currentBoard: ["e", "e", "e", "e", "e", "e", "e", "e", "e"],
+            nextToMove: "x",
             x: null,
             o: null
         }
@@ -356,6 +365,7 @@ function generateGame(gameType, gameName) {
                 "b", "e", "b", "e", "b", "e", "b", "e",
                 "e", "b", "e", "b", "e", "b", "e", "b",
                 "b", "e", "b", "e", "b", "e", "b", "e"],
+            nextToMove: "w",
             w: "",
             b: ""
             }

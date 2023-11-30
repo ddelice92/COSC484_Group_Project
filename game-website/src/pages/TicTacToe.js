@@ -18,6 +18,7 @@ export default function TicTacToe() {
     const [gameData, setGameData] = useState([]);//The current board for the game
     const [selectedBoxes, setSelectedBoxes] = useState([]);
     const [side, setSide] = useState('');
+    const [turn, setTurn] = useState('');
 
 
     const canvasRef = useRef(null);
@@ -34,6 +35,7 @@ export default function TicTacToe() {
                 }
             } if (lastJsonMessage.type === "update") {
                 setGameData(lastJsonMessage.game.currentBoard);
+                setTurn(lastJsonMessage.game.nextToMove);
             }
         } else {
             setGameData(["e", "e", "e", "e", "e", "e", "e", "e", "e",]);
@@ -63,14 +65,21 @@ export default function TicTacToe() {
 
     const handleMove = (e) => {
         e.preventDefault();
-        const message = {
-            type: 'makeMove',
-            message: [selectedBoxes, side],
-            gameName: gameName,
-            gameType: "tictactoe"
+        console.log(turn + " : " + side);
+        if (selectedBoxes == null) {
+            alert("Choose a move first.")
+        }else if (turn === side) {
+            const message = {
+                type: 'makeMove',
+                message: [selectedBoxes, side],
+                gameName: gameName,
+                gameType: "tictactoe"
+            }
+            console.log(message);
+            sendJsonMessage(message);
+        } else {
+            alert("Not your turn.");
         }
-        console.log(message);
-        sendJsonMessage(message);
 
 
     }
