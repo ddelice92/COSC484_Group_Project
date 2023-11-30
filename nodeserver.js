@@ -199,7 +199,7 @@ async function main() {
             res.json({ data });
         } else {
             res.status(401);
-            res.json({});
+            res.json({"error": "stale session_id"});
         }
 
 

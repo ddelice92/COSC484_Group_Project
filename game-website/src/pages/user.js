@@ -15,8 +15,15 @@ export default function User() {
 
         const response = await axios.post('/getuserdata', {
             token
+        }).catch(function (errore) {
+            logout();
         });
-        setUserData(response.data.data);
+        if (response.status === 401) {
+            logout();
+        } else {
+            setUserData(response.data.data);
+        }
+        
 
     }
 
