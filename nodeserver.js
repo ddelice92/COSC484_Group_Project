@@ -38,13 +38,6 @@ async function main() {
         
     }
 
-    const game = await findGameByName(gameCollection, 'tictactoewithmoves')
-    await tictactoeMakeMove(gameCollection, game, 0, 'x');
-    await tictactoeMakeMove(gameCollection, game, 1, 'x');
-    await tictactoeMakeMove(gameCollection, game, 2, 'x');
-    await tictactoeMakeMove(gameCollection, game, 8, 'o');
-    await tictactoeMakeMove(gameCollection, game, 7, 'o');
-    await tictactoeMakeMove(gameCollection, game, 6, 'o');
 
 
 
@@ -75,15 +68,33 @@ async function main() {
                     if (jsonmessage.type == 'makeMove') {
                         console.log('trying to make move');
                         console.log("socketmap size: " + socketMap.size)
-                        const gameData = await findGameByName(gameCollection, jsonmessage.gameName)
+                        const gameData = await findGameByName(gameCollection, jsonmessage.gameName);
 
-                        const moveMessage = {
-                            type: "update",
-                            game: gameData
-                        }
                         await tictactoeMakeMove(gameCollection, gameData, jsonmessage.message[0], jsonmessage.message[1])
-                        moveMessage.game = await findGameByName(gameCollection, jsonmessage.gameName);
-                        broadcastGame(socketMap, socketInfo.gameName,moveMessage)
+                        const win = tictactoeCheckForWin(await findGameByName(gameCollection, jsonmessage.gameName));
+                        if (win.winner != 'e') {
+                            const moveMessage = {
+                                type: "update",
+                                game: await findGameByName(gameCollection, jsonmessage.gameName)
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+
+                            const winMsg = {
+                                type: "winner",
+                                winner:win.winner
+                            }
+
+                            broadcastGame(socketMap, socketInfo.gameName,winMsg)
+                        } else {
+                            const moveMessage = {
+                                type: "update",
+                                game: await findGameByName(gameCollection, jsonmessage.gameName)
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+                        }
+                        
+
+                        
 
 
                     }
@@ -233,28 +244,31 @@ async function main() {
 function broadcastGame(socketMap, gameName, message) {
     socketMap.forEach((data, socket, m) => {
         if (data.gameName == gameName) {
-            console.log(data.gamename + ":"+ data.session_id)
+            console.log(message);
             socket.send(JSON.stringify(message));
         }
     });
 }
 
 async function tictactoeMakeMove(gameCollection, game, space, side) {
-    next = '';
-    if (game.nextToMove == 'x') {
-        next = 'o';
-    } else {
-        next = 'x';
+    if (tictactoeCheckForWin(game).winner == 'e') {
+        next = '';
+        if (game.nextToMove == 'x') {
+            next = 'o';
+        } else {
+            next = 'x';
+        }
+        if (game.currentBoard[space] == 'e' && game.nextToMove == side) {
+            game.currentBoard[space] = side;
+            await gameCollection.updateOne({ _id: game._id }, {
+                "$set": {
+                    currentBoard: game.currentBoard,
+                    nextToMove: next
+                }
+            })
+        }
     }
-    if (game.currentBoard[space] == 'e' && game.nextToMove == side) {
-        game.currentBoard[space] = side;
-        gameCollection.updateOne({ _id: game._id }, {
-            "$set": {
-                currentBoard: game.currentBoard,
-                nextToMove: next
-            }
-        })
-    }
+    
 
 }
 
@@ -274,7 +288,7 @@ function tictactoeCheckForWin(game) {
             return winner;
         }
         for (let i = 1; i <= 2; i++) {
-            if (game.currentBoard[i + j] == last) {
+            if (game.currentBoard[i + j] == last && game.currentBoard[j] == game.currentBoard[i + j] ) {
                 last = game.currentBoard[j+i];
                 winner.winner = last;
             } else {
@@ -293,7 +307,7 @@ function tictactoeCheckForWin(game) {
             return winner;
         }
         for (let i = 3; i <= 6; i = i+3) {
-            if (game.currentBoard[i + j] == last) {
+            if (game.currentBoard[i + j] == last && game.currentBoard[j] == game.currentBoard[i + j]) {
                 last = game.currentBoard[j + i];
                 winner.winner = last;
             } else {
@@ -304,40 +318,21 @@ function tictactoeCheckForWin(game) {
     }
 
     //check diagonal for winner
-    for (let j = 0; j <= 4; j = j + 4) {
-        last = game.currentBoard[j];
-        if (winner.winner != 'e') {
-            winner.position = 1;
-            winner.type = 'diag';
-            return winner;
-        }
-        if (game.currentBoard[j + 4] == last) {
-            last = game.currentBoard[j + 4];
-            winner.winner = last;
-        } else {
-            last = game.currentBoard[j + 4];
-            winner.winner = 'e';
-        }
+    if (game.currentBoard[0] == game.currentBoard[4] && game.currentBoard[4] == game.currentBoard[8] && game.currentBoard[0] != 'e') {
+        winner.winner = game.currentBoard[0]
+        winner.position = 1;
+        winner.type = 'diag';
+        return winner;
     }
 
-    //check reverse diagonal for winner
-    for (let j = 2; j <= 4; j = j+2) {
-        last = game.currentBoard[j];
-        if (winner.winner != 'e') {
-            winner.position = 2;
-            winner.type = 'diag';
-            return winner;
-        }
-        if (game.currentBoard[j+2] == last) {
-            last = game.currentBoard[j+2];
-            winner.winner = last;
-        } else {
-            last = game.currentBoard[j + 2];
-            winner.winner = 'e';
-        }
+    if (game.currentBoard[2] == game.currentBoard[4] && game.currentBoard[4] == game.currentBoard[6] && game.currentBoard[0] != 'e') {
+        winner.winner = game.currentBoard[2]
+        winner.position = 2;
+        winner.type = 'diag';
+        return winner;
     }
     
- 
+    
     return winner;
 }
 

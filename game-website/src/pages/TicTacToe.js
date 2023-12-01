@@ -19,6 +19,7 @@ export default function TicTacToe() {
     const [selectedBoxes, setSelectedBoxes] = useState([]);
     const [side, setSide] = useState('');
     const [turn, setTurn] = useState('');
+    const [winner, setWinner] = useState('');
 
 
     const canvasRef = useRef(null);
@@ -33,15 +34,24 @@ export default function TicTacToe() {
                 if (lastJsonMessage.error === "GAME_FULL") {
                     alert("Tried to join a full game");
                 }
-            } if (lastJsonMessage.type === "update") {
+            } else if (lastJsonMessage.type === "update") {
                 setGameData(lastJsonMessage.game.currentBoard);
                 setTurn(lastJsonMessage.game.nextToMove);
+            } else if (lastJsonMessage.type === "winner") {
+                setWinner(lastJsonMessage.winner);
+                console.log("winner is " + lastJsonMessage.winner);
             }
         } else {
             setGameData(["e", "e", "e", "e", "e", "e", "e", "e", "e",]);
         }
     }, [lastJsonMessage]);
 
+
+    useEffect(() => {
+        if (winner) {
+            alert(winner + " has won the game.")
+        }
+    },[winner])
 
     useEffect(() => {
         if (gameData != null) {
@@ -68,7 +78,9 @@ export default function TicTacToe() {
         console.log(turn + " : " + side);
         if (selectedBoxes == null) {
             alert("Choose a move first.")
-        }else if (turn === side) {
+        } else if (winner === 'x' || winner === 'y') {
+            alert("Game already complete, " + winner + " has won.")
+        } else if (turn === side) {
             const message = {
                 type: 'makeMove',
                 message: [selectedBoxes, side],
@@ -77,7 +89,7 @@ export default function TicTacToe() {
             }
             console.log(message);
             sendJsonMessage(message);
-        } else {
+        } else{
             alert("Not your turn.");
         }
 
