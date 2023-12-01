@@ -1,16 +1,15 @@
-.container {
+#container {
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction:column;
 }
 
-.canvasContainer{
-    margin:50px;
-    background-color:lightgrey;
-    border-radius:10px;
+#canvasContainer {
+    margin-top: 7rem;
 }
 
-.gameForm {
-    margin-top: 5rem;
+#checkersCanvas {
+    width: 400px;
+    height: 400px;
 }

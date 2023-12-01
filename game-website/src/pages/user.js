@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react"
-import { useAuth } from '../context/user.context';
-import { Navigate } from 'react-router-dom';
+import s from '../CSS/user.module.css'
 import LogoutIcon from '@mui/icons-material/Logout';
 import Header from "../components/header"
+import AuthUser from '../components/authUser'
+import { useEffect, useState, useRef } from "react"
+import { useAuth } from '../context/user.context';
 import axios from 'axios';
-import s from '../CSS/user.module.css'
 
 export default function User() {
+    <AuthUser />
     const { token, logout } = useAuth();
     const [userData, setUserData] = useState({});
 
@@ -14,8 +15,15 @@ export default function User() {
 
         const response = await axios.post('/getuserdata', {
             token
+        }).catch(function (errore) {
+            logout();
         });
-        setUserData(response.data.data);
+        if (response.status === 401) {
+            logout();
+        } else {
+            setUserData(response.data.data);
+        }
+        
 
     }
 
@@ -26,11 +34,6 @@ export default function User() {
     useEffect(() => {
         console.log(userData);
     }, [userData]);
-
-    if (!token) {
-        // If the user is not authenticated, redirect to the login page.
-        return <Navigate to="/login" />;
-    }
 
     const handleLogout = () => {
         logout();
