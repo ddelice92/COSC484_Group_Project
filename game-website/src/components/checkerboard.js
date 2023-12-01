@@ -11,6 +11,7 @@ const Checkerboard = () => {
     const [side, setSide] = useState('');
     const [turn, setTurn] = useState('');
     const [winner, setWinner] = useState('');
+    const [selectedBoxes, setSelectedBoxes] = useState([]);
     const [gameData, setGameData] = useState([
         "e", "w", "e", "w", "e", "w", "e", "w",
         "w", "e", "w", "e", "w", "e", "w", "e",
@@ -24,6 +25,12 @@ const Checkerboard = () => {
     useEffect(() => {
         drawBoard();
     }, []); // Empty dependency array to run the effect only once
+
+    useEffect(() => {
+        if (gameData != null) {
+            drawBoard();
+        }
+    }, [gameData, selectedBoxes]);
 
 
     useEffect(() => {
@@ -76,6 +83,16 @@ const Checkerboard = () => {
             }
         }
 
+        if (selectedBoxes != null) {
+            console.log('db');
+            context.lineWidth = 5;
+            const rectx = ((selectedBoxes) % boardSize) * squareSize;
+            const recty = Math.trunc((selectedBoxes / boardSize)) * squareSize;
+            context.strokeRect(rectx, recty, squareSize, squareSize)
+            context.lineWidth = 1;
+            console.log('db');
+        }
+
         const pieceRadius = squareSize / 2.2 - 5;
 
         for (let cell = 0; cell < 64; cell++) {
@@ -105,8 +122,19 @@ const Checkerboard = () => {
 
     };
 
+    const handleClick = (event) => {//Prints the current location of the mouse relative to the canvas when the canvas is clicked
+        const canvas = canvasRef.current;
+        const canvasRect = canvas.getBoundingClientRect();
+        const x = Math.trunc(event.clientX - canvasRect.left);
+        const y = Math.trunc(event.clientY - canvasRect.top);
+
+        const cell = Math.trunc(x / 62.5) + (Math.trunc(y / 62.5) * 8);
+        setSelectedBoxes(cell);
+        console.log(cell);
+    };
+
     return (
-        <canvas ref={canvasRef} width={500} height={500} style={{ borderRadius: '8px' }} />
+        <canvas ref={canvasRef} onClick={handleClick} width={500} height={500} style={{ borderRadius: '8px' }} />
     );
 };
 
