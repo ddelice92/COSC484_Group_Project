@@ -4,7 +4,7 @@ import useWebSocket from 'react-use-websocket';
 import AuthUser from '../components/authUser'
 import s from "../CSS/tictactoe.module.css"
 import { useAuth } from '../context/user.context';
-import { Select } from "@mui/material";
+import Result from '../components/resultPopup'
 
 
 export default function TicTacToe() {
@@ -20,6 +20,7 @@ export default function TicTacToe() {
     const [side, setSide] = useState('');
     const [turn, setTurn] = useState('');
     const [winner, setWinner] = useState('');
+    const [condition, setCondition] = useState(false);
 
 
     const canvasRef = useRef(null);
@@ -49,7 +50,7 @@ export default function TicTacToe() {
 
     useEffect(() => {
         if (winner) {
-            alert(winner + " has won the game.")
+            setCondition(true)
         }
     },[winner])
 
@@ -152,8 +153,6 @@ export default function TicTacToe() {
         }
     }
 
-
-
     const handleClick = (event) => {//Prints the current location of the mouse relative to the canvas when the canvas is clicked
         const canvas = canvasRef.current;
         const canvasRect = canvas.getBoundingClientRect();
@@ -165,12 +164,17 @@ export default function TicTacToe() {
         console.log(cell);
     };
 
+    const handleBoxClick = () => {
+        setCondition(false);
+    };
 
     return (
         <div>
             <AuthUser />
             <Header />
+            
             <div className={s.container}>
+                <Result condition={condition} winner={winner} onBoxClick={handleBoxClick}/>
                 <form className={s.gameForm} onSubmit={handleSubmit}>
                     <label for="text">Game name</label>
                     <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename"></input>
@@ -184,6 +188,9 @@ export default function TicTacToe() {
                     <canvas ref={canvasRef} onClick={handleClick} id="tic-tac-toe-canvas" width="300" height="300">
                     </canvas>
                 </div>
+                <div>
+                
+            </div>
             </div>
         </div>
     )
