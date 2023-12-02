@@ -59,6 +59,7 @@ async function main() {
             try {
                 jsonmessage = JSON.parse(message);
                 console.log(`Recieved message from client ${JSON.stringify(jsonmessage)}`);
+
                 if (jsonmessage.gameType == 'tictactoe') {
                     if (jsonmessage.type == 'makeMove') {
                         console.log('trying to make move');
@@ -76,10 +77,10 @@ async function main() {
 
                             const winMsg = {
                                 type: "winner",
-                                winner:win.winner
+                                winner: win.winner
                             }
 
-                            broadcastGame(socketMap, socketInfo.gameName,winMsg)
+                            broadcastGame(socketMap, socketInfo.gameName, winMsg)
                         } else {
                             const moveMessage = {
                                 type: "update",
@@ -87,9 +88,9 @@ async function main() {
                             }
                             broadcastGame(socketMap, socketInfo.gameName, moveMessage)
                         }
-                        
 
-                        
+
+
 
 
                     }
@@ -151,17 +152,118 @@ async function main() {
 
 
 
-                        console.log('Adding ' + socketInfo.session_id + " to " + gameName);
 
                     }
 
-                } else if(jsonMessage.gameType == 'checkers'){
+                } else if (jsonmessage.gameType == 'checkers') {//checkers
+                    console.log('ct');
+                    if (jsonmessage.type == 'makeMove') {
+                        console.log('trying to make move');
+                        console.log("socketmap size: " + socketMap.size)
+                        const gameData = await findGameByName(gameCollection, jsonmessage.gameName);
+ 
+                        await checkersMakeMove(gameCollection, jsonmessage.message, gameData);
+                        const win = {
+                            winner: await checkerCheckForWin(gameCollection, jsonmessage.message)
+                        };
+                        //await tictactoeMakeMove(gameCollection, gameData, jsonmessage.message[0], jsonmessage.message[1])
+                        //const win = tictactoeCheckForWin(await findGameByName(gameCollection, jsonmessage.gameName));
+                        if (win.winner != 'e') {
+                            const moveMessage = {
+                                type: "update",
+                                game: await findGameByName(gameCollection, jsonmessage.gameName)
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+
+                            const winMsg = {
+                                type: "winner",
+                                winner: win.winner
+                            }
+
+                            broadcastGame(socketMap, socketInfo.gameName, winMsg)
+                        } else {
+                            const moveMessage = {
+                                type: "update",
+                                game: await findGameByName(gameCollection, jsonmessage.gameName)
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+                        }
+
+
+
+
+
+                    }
+                    if (jsonmessage.type == 'connectGame') {
+                        console.log('checkCG');
+                        const game = await findGameByName(gameCollection, jsonmessage.gameName)
+                        console.log(game);
+                        const moveMessage = {
+                            type: "update",
+                            game: game
+                        }
+                        socketInfo.gameName = jsonmessage.gameName;
+                        socketInfo.gameType = jsonmessage.gameType;
+                        socketInfo.session_id = jsonmessage.session_id;
+                        socketMap.set(socket, socketInfo);
+                        if (game == null) {
+                            await createGame(gameCollection, generateGame(socketInfo.gameType, socketInfo.gameName));
+                            await addUserToGame(gameCollection, socketInfo.gameName, socketInfo.session_id, "w");
+                            const response = {
+                                type: "success",
+                                side: 'w'
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, {
+                                type: "update",
+                                game: await findGameByName(gameCollection, socketInfo.gameName),
+                            })
+                            socket.send(JSON.stringify(response));
+                        } else if (game.w == socketInfo.session_id) {
+                            const response = {
+                                type: "success",
+                                side: "w"
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+                            socket.send(JSON.stringify(response));
+                        } else if (game && game.b == null && game.x != socketInfo.session_id) {
+                            await addUserToGame(gameCollection, socketInfo.gameName, socketInfo.session_id, "b");
+                            const response = {
+                                type: "success",
+                                side: "b"
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+                            socket.send(JSON.stringify(response));
+                        } else if (game.b == socketInfo.session_id) {
+                            const response = {
+                                type: "success",
+                                side: "b"
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+                            socket.send(JSON.stringify(response));
+                        } else if (game.b != null && game.x != null) {
+                            const response = {
+                                type: "error",
+                                error: "GAME_FULL"
+                            }
+                            socket.send(JSON.stringify(response));
+                            console.log("gf");
+                        } else {
+
+                        }
+
+
+
+
+
+                    }
+                } else {
+                    console.log("?")
                 }
                 
                 
             } catch (e) {
                 jsonmessage = {}
-                console.log(`Recieved message from client ${message}`);
+                console.log(e);
             }
             
             
@@ -244,6 +346,58 @@ function broadcastGame(socketMap, gameName, message) {
             socket.send(JSON.stringify(message));
         }
     });
+}
+
+async function checkersMakeMove(gameCollection, game, gameData) {
+    next = gameData.nextToMove;
+    if (game != gameData.currentBoard) {
+        if (gameData.nextToMove == 'w') {
+            next = 'b';
+        } else {
+            next = 'w';
+        }
+    } else {
+
+    }
+    console.log(game);
+
+    for (i = 1; i < 8; i += 2) {
+        if (game[i] == 'b') {
+            game[i] = 'bk'
+        }
+    }
+    for (i = 56; i < 63; i += 2) {
+        if (game[i] == 'w') {
+            game[i] = 'wk'
+        }
+    }
+    await gameCollection.updateOne({ _id: gameData._id }, {
+        "$set": {
+            currentBoard: game,
+            nextToMove: next
+        }
+    })
+}
+
+async function checkerCheckForWin(gameCollection, game) {
+    var w = true;
+    var b = true;
+    game.forEach((element) => {
+        if (element == 'w') {
+            w = false;
+        }
+        if (element == 'b') {
+            b = false;
+        }
+    })
+
+    if (w) {
+        return 'w'
+    } else if (b) {
+        return 'b'
+    } else {
+        return 'e';
+    }
 }
 
 async function tictactoeMakeMove(gameCollection, game, space, side) {
@@ -372,7 +526,7 @@ function generateGame(gameType, gameName) {
                 "e", "e", "e", "e", "e", "e", "e",
                 "e", "e", "e", "e", "e", "e", "e",
                 "e", "e", "e", "e", "e", "e", "e"],
-            nextToMove: "x",
+            nextToMove: "w",
             x: null,
             o: null
         }
