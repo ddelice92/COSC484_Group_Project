@@ -14,7 +14,13 @@ export default function ConnectFour() {
         reconnectInterval: 1,
         reconnectAttempts: 5,
     });
-    const [gameData, setGameData] = useState([]); // The current board for the game
+    const [gameData, setGameData] = useState([
+        "e", "e", "e", "e", "e", "e", "e",
+        "e", "e", "e", "e", "e", "e", "e",
+        "e", "e", "x", "e", "o", "e", "e",
+        "e", "e", "x", "e", "o", "e", "e",
+        "e", "e", "x", "e", "o", "e", "e",
+        "e", "e", "x", "e", "o", "e", "e"]); // The current board for the game
     const [selectedColumn, setSelectedColumn] = useState([]); // Changed from selectedBoxes
     const [side, setSide] = useState('');
     const [turn, setTurn] = useState('');
@@ -39,7 +45,14 @@ export default function ConnectFour() {
                 console.log("winner is " + lastJsonMessage.winner);
             }
         } else {
-            setGameData(Array.from({ length: 7 }, () => Array(6).fill('e')));
+            setGameData([
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "x", "e", "o", "e", "e",
+                "e", "e", "x", "e", "o", "e", "e",
+                "e", "e", "x", "e", "o", "e", "e",
+                "e", "e", "x", "e", "o", "e", "e"])
+           
         }
     }, [lastJsonMessage]);
 
@@ -116,15 +129,18 @@ export default function ConnectFour() {
         }
 
         // Draw discs
-        for (let i = 0; i < 7; i++) {
-            for (let j = 0; j < 6; j++) {
-                const disc = gameData[i]?.[j];
-                if (disc === 'x') {
-                    drawCross(context, i * 100 + 50, j * 100 + 50);
-                } else if (disc === 'o') {
-                    drawCircle(context, i * 100 + 50, j * 100 + 50);
+        for (let i = 0; i < 42; i++) {
+           
+            const col = i % 7;
+            const row = Math.trunc(i / 7) ;
+                if (gameData[i] === 'x') {
+                    drawCross(context, col * 100 + 50, row * 100 + 50);
+                } else if (gameData[i] === 'o') {
+                    drawCircle(context, col * 100 + 50, row * 100 + 50);
                 }
-            }
+            
+
+
         }
     };
 
@@ -151,6 +167,8 @@ export default function ConnectFour() {
         const canvasRect = canvas.getBoundingClientRect();
         const x = Math.trunc(event.clientX - canvasRect.left);
         const y = Math.trunc(event.clientY - canvasRect.top);
+        console.log( Math.trunc(x / 100) + (Math.trunc(y / 100) * 7));
+
 
         const column = Math.trunc(x / 100);
         setSelectedColumn(column);
