@@ -151,25 +151,25 @@ const Checkerboard = () => {
                 }
 
 
-            } else if (gameData[selectedBoxes] == 'b' && (gameData[selectedBoxes] == side || gameData[selectedBoxes] == sidek) && (gameData[selectedBoxes] == turn || gameData[selectedBoxes] == turnk) ) {
+            } else if ((gameData[selectedBoxes] == 'b' || gameData[selectedBoxes] == 'bk') && (gameData[selectedBoxes] == side || gameData[selectedBoxes] == sidek) && (gameData[selectedBoxes] == turn || gameData[selectedBoxes] == turnk)) {
                 if (((selectedBoxes - cell) % 9) == 0) {
                     console.log('lum')
-                    gameData[cell] = gameData[selectedBoxes]
+                    gameData[cell] = scell
                     gameData[selectedBoxes] = 'e';
                     if (((selectedBoxes - cell) / 9) > 1) {
                         gameData[selectedBoxes - 9] = 'e'
                         console.log("lujm");
-                        gameData[cell] = 'b'
+                        gameData[cell] = scell
                         gameData[selectedBoxes] = 'e';
                     }
                 } else if (((selectedBoxes - cell) % 7) == 0) {
                     console.log("rum")
-                    gameData[cell] = gameData[selectedBoxes]
+                    gameData[cell] = scell
                     gameData[selectedBoxes] = 'e';
                     if (((selectedBoxes - cell) / 7) > 1) {
                         gameData[selectedBoxes - 7] = 'e'
                         console.log("rujm");
-                        gameData[cell] = 'b'
+                        gameData[cell] = scell
                         gameData[selectedBoxes] = 'e';
                     }
                 }
