@@ -46,7 +46,7 @@ export default function ConnectFour() {
             }
         } else {
             setGameData([
-                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "x", "e", "e", "o", "e",
                 "e", "e", "e", "e", "e", "e", "e",
                 "e", "e", "x", "e", "o", "e", "e",
                 "e", "e", "x", "e", "o", "e", "e",
@@ -134,31 +134,30 @@ export default function ConnectFour() {
             const col = i % 7;
             const row = Math.trunc(i / 7) ;
                 if (gameData[i] === 'x') {
-                    drawCross(context, col * 100 + 50, row * 100 + 50);
+                    YellowCircle(context, col * 100 + 50, row * 100 + 50);
                 } else if (gameData[i] === 'o') {
-                    drawCircle(context, col * 100 + 50, row * 100 + 50);
+                    drawredCircle(context, col * 100 + 50, row * 100 + 50);
                 }
             
 
 
         }
     };
-
-    const drawCross = (context, x, y) => {
-        context.beginPath();
-        context.moveTo(x - 40, y - 40);
-        context.lineTo(x + 40, y + 40);
-        context.stroke();
-
-        context.beginPath();
-        context.moveTo(x + 40, y - 40);
-        context.lineTo(x - 40, y + 40);
-        context.stroke();
-    };
-
-    const drawCircle = (context, x, y) => {
+// yellow circles
+    const YellowCircle = (context, x, y) => {
         context.beginPath();
         context.arc(x, y, 40, 0, 2 * Math.PI);
+        context.fillStyle = 'yellow';
+        context.fill();
+        context.stroke();
+    };
+    
+     //red circles
+    const drawredCircle = (context, x, y) => {
+        context.beginPath();
+        context.arc(x, y, 40, 0, 2 * Math.PI);
+        context.fillStyle = 'red';
+        context.fill();
         context.stroke();
     };
 
