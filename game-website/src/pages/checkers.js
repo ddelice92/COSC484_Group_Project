@@ -4,7 +4,7 @@ import Checkerboard from "../components/checkerboard.js"
 import AuthUser from '../components/authUser'
 import s from "../CSS/checkers.module.css"
 import useWebSocket from 'react-use-websocket';
-import s from "../CSS/checkers.module.css"
+
 
 //both pieces can be moved but black pieces turn red when moved so that needs to be fixed which should be easy
 //if i pick one piece then a different piece of the same color then try to move second piece bad things happen
