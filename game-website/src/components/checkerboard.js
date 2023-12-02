@@ -1,11 +1,66 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect, useState, useRef } from "react"
+import useWebSocket from 'react-use-websocket';
 
 const Checkerboard = () => {
     const canvasRef = useRef(null);
+    const { sendJsonMessage, lastJsonMessage } = useWebSocket('ws://localhost:8080', {
+        shouldReconnect: (closeEvent) => true,
+        reconnectInterval: 1,
+        reconnectAttempts: 5,
+    });
+    const [side, setSide] = useState('');
+    const [turn, setTurn] = useState('');
+    const [winner, setWinner] = useState('');
+    const [selectedBoxes, setSelectedBoxes] = useState([]);
+    const [gameData, setGameData] = useState([
+        "e", "w", "e", "w", "e", "w", "e", "w",
+        "w", "e", "w", "e", "w", "e", "w", "e",
+        "e", "w", "e", "w", "e", "w", "e", "w",
+        "e", "e", "e", "e", "e", "e", "e", "e",
+        "e", "e", "e", "e", "e", "e", "e", "e",
+        "b", "e", "b", "e", "b", "e", "b", "e",
+        "e", "b", "e", "b", "e", "b", "e", "b",
+        "b", "e", "b", "e", "b", "e", "b", "e"]);
 
     useEffect(() => {
         drawBoard();
     }, []); // Empty dependency array to run the effect only once
+
+    useEffect(() => {
+        if (gameData != null) {
+            drawBoard();
+        }
+    }, [gameData, selectedBoxes]);
+
+
+    useEffect(() => {
+        console.log(JSON.stringify(lastJsonMessage));
+        if (lastJsonMessage !== null) {//Whenever a json message is received, refresh gameData 
+            if (lastJsonMessage.type === "success") {
+                setSide(lastJsonMessage.side);
+            } else if (lastJsonMessage.error) {
+                if (lastJsonMessage.error === "GAME_FULL") {
+                    alert("Tried to join a full game");
+                }
+            } else if (lastJsonMessage.type === "update") {
+                setGameData(lastJsonMessage.game.currentBoard);
+                setTurn(lastJsonMessage.game.nextToMove);
+            } else if (lastJsonMessage.type === "winner") {
+                setWinner(lastJsonMessage.winner);
+                console.log("winner is " + lastJsonMessage.winner);
+            }
+        } else {
+            setGameData([
+                "e", "w", "e", "w", "e", "w", "e", "w",
+                "w", "e", "w", "e", "w", "e", "w", "e",
+                "e", "w", "e", "w", "e", "w", "e", "w",
+                "e", "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e", "e",
+                "b", "e", "b", "e", "b", "e", "b", "e",
+                "e", "b", "e", "b", "e", "b", "e", "b",
+                "b", "e", "b", "e", "b", "e", "b", "e"]);
+        }
+    }, [lastJsonMessage]);
 
     const drawBoard = () => {
         const canvas = canvasRef.current;
@@ -28,11 +83,22 @@ const Checkerboard = () => {
             }
         }
 
+        if (selectedBoxes != null) {
+            console.log('db');
+            context.lineWidth = 5;
+            const rectx = ((selectedBoxes) % boardSize) * squareSize;
+            const recty = Math.trunc((selectedBoxes / boardSize)) * squareSize;
+            context.strokeRect(rectx, recty, squareSize, squareSize)
+            context.lineWidth = 1;
+            console.log('db');
+        }
+
         const pieceRadius = squareSize / 2.2 - 5;
 
-        // Draws the white pieces
-        for (let row = 0; row < 3; row++) {
-            for (let col = (row + 1) % 2; col < boardSize; col += 2) {
+        for (let cell = 0; cell < 64; cell++) {
+            const col = cell % 8;
+            const row = Math.trunc(cell / boardSize) ;
+            if (gameData[cell] === 'w') {
                 const x = col * squareSize + squareSize / 2;
                 const y = row * squareSize + squareSize / 2;
 
@@ -41,12 +107,7 @@ const Checkerboard = () => {
                 context.beginPath();
                 context.arc(x, y, pieceRadius, 0, 2 * Math.PI);
                 context.fill();
-            }
-        }
-
-        // Draw the black pieces
-        for (let row = boardSize - 3; row < boardSize; row++) {
-            for (let col = (row + 1) % 2; col < boardSize; col += 2) {
+            } else if (gameData[cell] === 'b') {
                 const x = col * squareSize + squareSize / 2;
                 const y = row * squareSize + squareSize / 2;
 
@@ -57,10 +118,23 @@ const Checkerboard = () => {
                 context.fill();
             }
         }
+
+
+    };
+
+    const handleClick = (event) => {//Prints the current location of the mouse relative to the canvas when the canvas is clicked
+        const canvas = canvasRef.current;
+        const canvasRect = canvas.getBoundingClientRect();
+        const x = Math.trunc(event.clientX - canvasRect.left);
+        const y = Math.trunc(event.clientY - canvasRect.top);
+
+        const cell = Math.trunc(x / 62.5) + (Math.trunc(y / 62.5) * 8);
+        setSelectedBoxes(cell);
+        console.log(cell);
     };
 
     return (
-        <canvas ref={canvasRef} width={500} height={500} style={{ borderRadius: '8px' }} />
+        <canvas ref={canvasRef} onClick={handleClick} width={500} height={500} style={{ borderRadius: '8px' }} />
     );
 };
 

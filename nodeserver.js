@@ -60,11 +60,6 @@ async function main() {
                 jsonmessage = JSON.parse(message);
                 console.log(`Recieved message from client ${JSON.stringify(jsonmessage)}`);
                 if (jsonmessage.gameType == 'tictactoe') {
-                    if (jsonmessage.type == 'heartbeat') {
-                        const gameData = await findGameByName(gameCollection, socketinfo.gameName)
-                        console.log(await gameData);
-                        socket.send(JSON.stringify(gameData));
-                    }
                     if (jsonmessage.type == 'makeMove') {
                         console.log('trying to make move');
                         console.log("socketmap size: " + socketMap.size)
@@ -160,6 +155,7 @@ async function main() {
 
                     }
 
+                } else if(jsonMessage.gameType == 'checkers'){
                 }
                 
                 
@@ -361,10 +357,26 @@ function generateGame(gameType, gameName) {
                 "e", "b", "e", "b", "e", "b", "e", "b",
                 "b", "e", "b", "e", "b", "e", "b", "e"],
             nextToMove: "w",
-            w: "",
-            b: ""
+            w: null,
+            b: null
             }
-        }else {
+    } else if (gameType == "connectfour") {
+        return {
+            _id: gameName,
+            gameType: "connectfour",
+            currentBoard: [
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e"],
+            nextToMove: "x",
+            x: null,
+            o: null
+        }
+    }else {
             console.error("tried to create a game of invalid gameType");
         }
 }
