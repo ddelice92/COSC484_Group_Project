@@ -97,7 +97,7 @@ const Checkerboard = () => {
 
         for (let cell = 0; cell < 64; cell++) {
             const col = cell % 8;
-            const row = Math.trunc(cell /8) ;
+            const row = Math.trunc(cell / boardSize) ;
             if (gameData[cell] === 'w') {
                 const x = col * squareSize + squareSize / 2;
                 const y = row * squareSize + squareSize / 2;

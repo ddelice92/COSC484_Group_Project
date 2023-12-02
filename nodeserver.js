@@ -357,10 +357,26 @@ function generateGame(gameType, gameName) {
                 "e", "b", "e", "b", "e", "b", "e", "b",
                 "b", "e", "b", "e", "b", "e", "b", "e"],
             nextToMove: "w",
-            w: "",
-            b: ""
+            w: null,
+            b: null
             }
-        }else {
+    } else if (gameType == "connectfour") {
+        return {
+            _id: gameName,
+            gameType: "connectfour",
+            currentBoard: [
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e",
+                "e", "e", "e", "e", "e", "e", "e"],
+            nextToMove: "x",
+            x: null,
+            o: null
+        }
+    }else {
             console.error("tried to create a game of invalid gameType");
         }
 }
