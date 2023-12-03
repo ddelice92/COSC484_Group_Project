@@ -6,7 +6,7 @@ import { useAuth } from '../context/user.context';
 const Checkerboard = () => {
     const canvasRef = useRef(null);
     const { token } = useAuth();
-    const { sendJsonMessage, lastJsonMessage } = useWebSocket('ws://localhost:8080', {
+    const { sendJsonMessage, lastJsonMessage } = useWebSocket('wss://games.zenithgaming.horse/ws', {
         shouldReconnect: (closeEvent) => true,
         reconnectInterval: 1,
         reconnectAttempts: 5,

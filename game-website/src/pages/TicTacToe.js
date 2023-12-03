@@ -10,7 +10,7 @@ import Result from '../components/resultPopup'
 export default function TicTacToe() {
     const { token } = useAuth();
     var [gameName, setGameName] = useState('');
-    const { sendJsonMessage, lastJsonMessage } = useWebSocket('ws://localhost:8080', {
+    const { sendJsonMessage, lastJsonMessage } = useWebSocket('wss://games.zenithgaming.horse/ws', {
         shouldReconnect: (closeEvent) => true,
         reconnectInterval: 1,
         reconnectAttempts: 5,

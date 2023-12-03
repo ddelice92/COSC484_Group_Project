@@ -3,8 +3,8 @@ const { MongoClient } = require('mongodb');
 const express = require('express')
 const jwt = require('jsonwebtoken');
 var cors = require('cors');
-const websocket = require('ws');
 const app = express();
+var expressWs = require('express-ws')(app);
 const port = 3001;
 
 async function main() {
@@ -17,7 +17,7 @@ async function main() {
 
     //enable cors at specified origin
     app.use(cors({
-        origin: 'http://localhost:3000',
+        origin: '*',
         methods: ['GET', 'POST', 'PUT', 'DELETE']
     }));
 
@@ -28,10 +28,6 @@ async function main() {
     try {
         await client.connect();
         await listDatabases(client);
-        await createGame(gameCollection, generateGame('tictactoe', 'samplegametictactoe'));
-        await createGame(gameCollection, generateGame('checkers', 'samplegamecheckers'));
-        console.log(await addUser(userCollection, 'testuser', 'testpassword'));
-        await authUser(userCollection, 'testuser', 'notreal');
     }catch (e) {
         console.error(e);
     }finally {
@@ -45,11 +41,9 @@ async function main() {
     app.listen(port, () => {
         console.log("Server Listening on PORT:", port);
     });
-    const server = new websocket.Server({ port: 8080 }, () => {
-        console.log('Websocket started on port 8080');
-    });
 
-    server.on('connection', async (socket) => {
+    ap
+    app.ws('/ws', async (socket, req) => {
         socketInfo = {
             gameName: "",
             gameType: "",
