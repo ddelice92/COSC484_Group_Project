@@ -20,7 +20,7 @@ export default function TicTacToe() {
     const [side, setSide] = useState('');
     const [turn, setTurn] = useState('');
     const [winner, setWinner] = useState('');
-    const [condition, setCondition] = useState(false);
+    const [condition, setCondition] = useState('');
 
 
     const canvasRef = useRef(null);
@@ -33,7 +33,7 @@ export default function TicTacToe() {
                 setSide(lastJsonMessage.side);
             } else if (lastJsonMessage.error) {
                 if (lastJsonMessage.error === "GAME_FULL") {
-                    alert("Tried to join a full game");
+                    setCondition('full');
                 }
             } else if (lastJsonMessage.type === "update") {
                 setGameData(lastJsonMessage.game.currentBoard);
@@ -50,7 +50,7 @@ export default function TicTacToe() {
 
     useEffect(() => {
         if (winner) {
-            setCondition(true)
+            setCondition("win")
         }
     },[winner])
 
@@ -80,7 +80,7 @@ export default function TicTacToe() {
         if (selectedBoxes == null) {
             alert("Choose a move first.")
         } else if (winner === 'x' || winner === 'y') {
-            alert("Game already complete, " + winner + " has won.")
+            setCondition('win')
         } else if (turn === side) {
             const message = {
                 type: 'makeMove',
@@ -91,7 +91,7 @@ export default function TicTacToe() {
             console.log(message);
             sendJsonMessage(message);
         } else{
-            alert("Not your turn.");
+            setCondition('notTurn')
         }
 
 

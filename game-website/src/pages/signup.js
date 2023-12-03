@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/user.context';
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from 'axios';
+import Invalid from '../components/invalid'
 import s from "../CSS/login.module.css"
 
 
@@ -15,6 +16,8 @@ export default function Signup() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [passwordconf, setPasswordConf] = useState('');
+    const [condition, setCondition] = useState('')
+    const [invalid, setInvalid] = useState(false);
 
     const redirect = () => {
         const redirectTo = location.search.replace("?redirectTo=", "");
@@ -23,7 +26,19 @@ export default function Signup() {
 
     const handleSignup = async (e) => {
         e.preventDefault(); // Prevent the form from submitting the traditional way.
-        if (password === passwordconf) {
+        setInvalid(false);
+
+        if (username.length <= 5) {
+            setInvalid(true)
+            setCondition('userShort')
+        } else if (password != passwordconf) {
+            setCondition('notMatch')
+            setInvalid(true)
+        } else if (password.length <= 7) {
+            setCondition('passShort')
+            setInvalid(true)
+        }
+        else if (invalid == false) {
             try {
                 const response = await axios.post('/register', {
                     username,
@@ -44,14 +59,13 @@ export default function Signup() {
                     }
                 }
                 else {
-                    alert('User already exists');
+                    setInvalid(true)
+                    setCondition('exists')
                 }
             }
             catch (error) {
                 console.error(error);
             }
-        } else {
-            alert('Passwords do not match');
         }
 
     };
@@ -61,6 +75,7 @@ export default function Signup() {
             <Header />
             <body>
                 <div id={s.formContainer}>
+                    <Invalid invalid={invalid} condition={condition} />
                     <div id={s.formBox}>
                         <h1>
                             Signup

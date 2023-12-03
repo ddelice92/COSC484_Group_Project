@@ -5,6 +5,7 @@ import AuthUser from '../components/authUser'
 import s from "../CSS/connectfour.module.css"
 import { useAuth } from '../context/user.context';
 import { Select } from "@mui/material";
+import Result from '../components/resultPopup'
 
 export default function ConnectFour() {
     const { token } = useAuth();
@@ -26,6 +27,8 @@ export default function ConnectFour() {
     const [color, setColor] = useState(1);
     const [turn, setTurn] = useState(1);
     const [winner, setWinner] = useState(0);
+    const [win, setWin] = useState('');
+    const [condition, setCondition] = useState('');
 
     const canvasRef = useRef(null);
 
@@ -36,7 +39,7 @@ export default function ConnectFour() {
                 setColor(lastJsonMessage.side);
             } else if (lastJsonMessage.error) {
                 if (lastJsonMessage.error === "GAME_FULL") {
-                    alert("Tried to join a full game");
+                    setCondition('full')
                 }
             } else if (lastJsonMessage.type === "update") {
                 setGameData(lastJsonMessage.game.currentBoard);
@@ -61,10 +64,12 @@ export default function ConnectFour() {
     useEffect(() => {
         if (winner != 0) {
             if(winner == 1) {
-                alert("yellow has won the game.");
+                setWin('yellow')
+                setCondition('win')
             }
             else {
-                alert("red has won the game.");
+                setWin('red')
+                setCondition('win')
             }
         }
     }, [winner]);
@@ -237,13 +242,15 @@ export default function ConnectFour() {
 
         console.log(turn + " : " + color);
         if (selectedColumn === null) {
-            alert("Choose a move first.");
+            setCondition('null')
         } else if (winner === 1 || winner === -1) {
             if(winner == 1) {
-                alert("Game already complete, yellow has won.");
+                setWin('yellow')
+                setCondition('win')
             }
             else {
-                alert("Game already complete, red has won.");
+                setWin('red')
+                setCondition('win')
             }
         } else if ((turn === color) && (gameData[selectedColumn] == 0)) {
             console.log("circle will be drawn at " + findOpenSquare());
@@ -283,7 +290,7 @@ export default function ConnectFour() {
 
             checkWin();
         } else {
-            alert("Not your turn.");
+            setCondition('notTurn')
         }
     };
 
@@ -361,11 +368,16 @@ export default function ConnectFour() {
         //console.log(column);
     };
 
+    const handleBoxClick = () => {
+        setCondition(false);
+    };
+
     return (
         <div>
             <AuthUser />
             <Header />
             <div className={s.container}>
+                <Result condition={condition} winner={win} onBoxClick={handleBoxClick}/>
                 <form className={s.gameForm} onSubmit={handleSubmit}>
                     <label htmlFor="text">Game name</label>
                     <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename" />

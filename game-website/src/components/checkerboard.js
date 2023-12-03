@@ -2,6 +2,7 @@ import { Select } from "@mui/material";
 import React, { useEffect, useState, useRef } from "react"
 import useWebSocket from 'react-use-websocket';
 import { useAuth } from '../context/user.context';
+import Result from '../components/resultPopup'
 
 const Checkerboard = () => {
     const canvasRef = useRef(null);
@@ -14,6 +15,7 @@ const Checkerboard = () => {
     const [side, setSide] = useState('');
     const [turn, setTurn] = useState('');
     const [winner, setWinner] = useState('');
+    const [condition, setCondition] = useState('');
     const [selectedBoxes, setSelectedBoxes] = useState([]);
     const [gameName, setGameName] = useState('');
     const [gameData, setGameData] = useState([
@@ -63,7 +65,7 @@ const Checkerboard = () => {
                 setSide(lastJsonMessage.side);
             } else if (lastJsonMessage.error) {
                 if (lastJsonMessage.error === "GAME_FULL") {
-                    alert("Tried to join a full game");
+                    setCondition('full')
                 }
             } else if (lastJsonMessage.type === "update") {
                 setGameData(lastJsonMessage.game.currentBoard);
@@ -71,7 +73,7 @@ const Checkerboard = () => {
                 setTurn(lastJsonMessage.game.nextToMove);
             } else if (lastJsonMessage.type === "winner") {
                 setWinner(lastJsonMessage.winner);
-                alert(lastJsonMessage.winner + " is the winner.");
+                setCondition('win')
                 console.log("winner is " + lastJsonMessage.winner);
             }
         } else {
@@ -547,8 +549,13 @@ const Checkerboard = () => {
         console.log(cell);
     };
 
+    const handleBoxClick = () => {
+        setCondition(false);
+    };
+
     return (
         <div>
+        <Result condition={condition} winner={winner} onBoxClick={handleBoxClick}/>
         <canvas ref={canvasRef} onClick={handleClick} width={500} height={500} style={{ borderRadius: '8px' }} />
             <form onSubmit={handleSubmit}>
                 <label for="text">Game name</label>
