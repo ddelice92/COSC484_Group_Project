@@ -8,31 +8,32 @@ import { Select } from "@mui/material";
 
 export default function ConnectFour() {
     const { token } = useAuth();
-    var [gameName, setGameName] = useState('');
+    var [gameType, setGameType] = useState('connectFour');
     const { sendJsonMessage, lastJsonMessage } = useWebSocket('ws://localhost:8080', {
         shouldReconnect: (closeEvent) => true,
         reconnectInterval: 1,
-        reconnectAttempts: 5,
+        //change attempts back to 5 when done testing
+        reconnectAttempts: 1,
     });
     const [gameData, setGameData] = useState([
-        "e", "e", "e", "e", "e", "e", "e",
-        "e", "e", "e", "e", "e", "e", "e",
-        "e", "e", "x", "e", "o", "e", "e",
-        "e", "e", "x", "e", "o", "e", "e",
-        "e", "e", "x", "e", "o", "e", "e",
-        "e", "e", "x", "e", "o", "e", "e"]); // The current board for the game
+        0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0]); // The current board for the game
     const [selectedColumn, setSelectedColumn] = useState([]); // Changed from selectedBoxes
-    const [side, setSide] = useState('');
-    const [turn, setTurn] = useState('');
-    const [winner, setWinner] = useState('');
+    const [color, setColor] = useState(1);
+    const [turn, setTurn] = useState(1);
+    const [winner, setWinner] = useState(0);
 
     const canvasRef = useRef(null);
 
-    useEffect(() => {
+    /*useEffect(() => {
         console.log(JSON.stringify(lastJsonMessage));
         if (lastJsonMessage !== null) {
             if (lastJsonMessage.type === "success") {
-                setSide(lastJsonMessage.side);
+                setColor(lastJsonMessage.color);
             } else if (lastJsonMessage.error) {
                 if (lastJsonMessage.error === "GAME_FULL") {
                     alert("Tried to join a full game");
@@ -45,20 +46,26 @@ export default function ConnectFour() {
                 console.log("winner is " + lastJsonMessage.winner);
             }
         } else {
+            //console.log("resetting board");
             setGameData([
-                "e", "e", "x", "e", "e", "o", "e",
-                "e", "e", "e", "e", "e", "e", "e",
-                "e", "e", "x", "e", "o", "e", "e",
-                "e", "e", "x", "e", "o", "e", "e",
-                "e", "e", "x", "e", "o", "e", "e",
-                "e", "e", "x", "e", "o", "e", "e"])
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0])
            
         }
-    }, [lastJsonMessage]);
+    }, [lastJsonMessage]);*/
 
     useEffect(() => {
-        if (winner) {
-            alert(winner + " has won the game.");
+        if (winner != 0) {
+            if(winner == 1) {
+                alert("yellow has won the game.");
+            }
+            else {
+                alert("red has won the game.");
+            }
         }
     }, [winner]);
 
@@ -72,7 +79,7 @@ export default function ConnectFour() {
         e.preventDefault();
         const message = {
             type: 'connectGame',
-            gameName: gameName,
+            gameType: gameType,
             session_id: token,
             gameType: "connectFour"
         };
@@ -80,22 +87,183 @@ export default function ConnectFour() {
         sendJsonMessage(message);
     };
 
+    function findOpenSquare() {
+        for(let i = 5; i >= 0; i--) {
+            if(gameData[(i * 7) + selectedColumn] == 0) {
+                console.log("open square found at row " + (i));
+                return ((i * 7) + selectedColumn);
+            }
+        }
+        
+        //error
+        return -1;
+    }
+
+    function checkWin() {
+        var win = 0;
+
+        //seek horizontal win
+        for(let i = 5; i  >= 0; i--) {
+            //check each column of selected row
+            for(let j = 0; j < 7; j++) {
+                if(win == 0) {
+                    win += gameData[(i*7) + j];
+
+                    /*if(win > 3) {
+                        setWinner(1);
+                        return true;
+                    }
+                    else if(win < -3) {
+                        setWinner(-1);
+                        return true;
+                    }*/
+                }
+                //if color matches color being counted
+                else if(((win > 0) && (gameData[(i*7) + j] > 0)) || ((win < 0) && (gameData[(i*7) + j] < 0))) {
+
+                    //add to count
+                    win += gameData[(i*7) + j];
+                    if(win > 3) {
+                        setWinner(1);
+                        return true;
+                    }
+                    else if(win < -3) {
+                        setWinner(-1);
+                        return true;
+                    }
+                }
+                //if win is counting yellow and a red occurs or vice versa or empty square occurs
+                else if(((win < 0) && (gameData[(i*7) + j] > 0)) || ((win > 0) && (gameData[(i*7) + j] < 0)) || gameData[(i*7) + j] == 0) {
+                    //reset count
+                    win = gameData[(i*7) + j];
+                }
+            }
+        }
+
+        win = 0;
+        //seek vertical win
+        for(let j = 0; j < 7; j++) {
+            //check each row of selected column
+            for(let i = 5; i  >= 0; i--) {
+                if(win == 0) {
+                    win += gameData[(i*7) + j];
+
+                    /*if(win > 3) {
+                        setWinner(1);
+                        return true;
+                    }
+                    else if(win < -3) {
+                        setWinner(-1);
+                        return true;
+                    }*/
+                }
+                //if color matches color being counted
+                else if(((win > 0) && (gameData[(i*7) + j] > 0)) || ((win < 0) && (gameData[(i*7) + j] < 0))) {
+
+                    //add to count
+                    win += gameData[(i*7) + j];
+                    if(win > 3) {
+                        setWinner(1);
+                        return true;
+                    }
+                    else if(win < -3) {
+                        setWinner(-1);
+                        return true;
+                    }
+                }
+                //if win is counting yellow and a red occurs or vice versa or empty square occurs
+                else if(((win < 0) && (gameData[(i*7) + j] > 0)) || ((win > 0) && (gameData[(i*7) + j] < 0)) || gameData[(i*7) + j] == 0) {
+                    //reset count
+                    win = gameData[(i*7) + j];
+                }
+            }
+        }
+
+        win = 0;
+        //seek forward slash win
+        for(let i = 5; i > 2; i--) {
+            for(let j = 0; j < 4; j++) {
+                win = 0;
+                for(let k = 0; k < 4; k++) {
+                    win += gameData[((i-k)*7) + (j + k)];
+                }
+
+                if(win == 4) {
+                    setWinner(1);
+                    return true;
+                }
+                else if(win == -4) {
+                    setWinner(-1);
+                    return true;
+                }
+            }
+        }
+
+        win = 0;
+        //seek backward slash win
+        for(let i = 5; i > 2; i--) {
+            for(let j = 3; j < 7; j++) {
+                win = 0;
+                for(let k = 0; k < 4; k++) {
+                    win += gameData[((i-k)*7) + (j - k)];
+                }
+
+                if(win == 4) {
+                    setWinner(1);
+                    return true;
+                }
+                else if(win == -4) {
+                    setWinner(-1);
+                    return true;
+                }
+            }
+        }
+
+        console.log("no win found");
+        return false;
+    }
+
     const handleMove = (e) => {
+        console.log("**********MOVE SUBMITTED**********");
         e.preventDefault();
-        console.log(turn + " : " + side);
+
+        console.log(turn + " : " + color);
         if (selectedColumn === null) {
             alert("Choose a move first.");
-        } else if (winner === 'x' || winner === 'o') {
-            alert("Game already complete, " + winner + " has won.");
-        } else if (turn === side) {
+        } else if (winner === 1 || winner === -1) {
+            if(winner == 1) {
+                alert("Game already complete, yellow has won.");
+            }
+            else {
+                alert("Game already complete, red has won.");
+            }
+        } else if ((turn === color) && (gameData[selectedColumn] == 0)) {
+            console.log("circle will be drawn at " + findOpenSquare());
             const message = {
                 type: 'makeMove',
-                message: [selectedColumn, side],
-                gameName: gameName,
+                message: [selectedColumn, color],
+                gameType: gameType,
                 gameType: "connectFour"
             };
-            console.log(message);
+            console.log("this is the JSON message sent: " + JSON.stringify(message));
             sendJsonMessage(message);
+            var openSquare = findOpenSquare();
+            if((turn === 1)) {
+                gameData[openSquare] = 1;
+                //drawYellowCircle(context, (selectedColumn * 100) + 50, (Math.floor(openSquare/6) * 100) + 50);
+                drawBoard();
+                setTurn(-1);
+                setColor(-1);
+            }
+            else {
+                gameData[openSquare] = -1;
+                //drawYellowCircle(context, (selectedColumn * 100) + 50, (Math.floor(openSquare/6) * 100) + 50);
+                drawBoard();
+                setTurn(1);
+                setColor(1);
+            }
+
+            checkWin();
         } else {
             alert("Not your turn.");
         }
@@ -132,11 +300,11 @@ export default function ConnectFour() {
         for (let i = 0; i < 42; i++) {
            
             const col = i % 7;
-            const row = Math.trunc(i / 7) ;
-                if (gameData[i] === 'x') {
-                    YellowCircle(context, col * 100 + 50, row * 100 + 50);
-                } else if (gameData[i] === 'o') {
-                    drawredCircle(context, col * 100 + 50, row * 100 + 50);
+            const row = Math.floor(i / 7) ;
+                if (gameData[i] === 1) {
+                    drawYellowCircle(context, col * 100 + 50, row * 100 + 50);
+                } else if (gameData[i] === -1) {
+                    drawRedCircle(context, col * 100 + 50, row * 100 + 50);
                 }
             
 
@@ -144,7 +312,7 @@ export default function ConnectFour() {
         }
     };
 // yellow circles
-    const YellowCircle = (context, x, y) => {
+    const drawYellowCircle = (context, x, y) => {
         context.beginPath();
         context.arc(x, y, 40, 0, 2 * Math.PI);
         context.fillStyle = 'yellow';
@@ -153,7 +321,7 @@ export default function ConnectFour() {
     };
     
      //red circles
-    const drawredCircle = (context, x, y) => {
+    const drawRedCircle = (context, x, y) => {
         context.beginPath();
         context.arc(x, y, 40, 0, 2 * Math.PI);
         context.fillStyle = 'red';
@@ -162,16 +330,17 @@ export default function ConnectFour() {
     };
 
     const handleClick = (event) => {
+        console.log("**********NEW CLICK**********");
         const canvas = canvasRef.current;
         const canvasRect = canvas.getBoundingClientRect();
-        const x = Math.trunc(event.clientX - canvasRect.left);
-        const y = Math.trunc(event.clientY - canvasRect.top);
-        console.log( Math.trunc(x / 100) + (Math.trunc(y / 100) * 7));
+        const x = Math.floor(event.clientX - canvasRect.left);
+        const y = Math.floor(event.clientY - canvasRect.top);
+        //console.log(Math.floor(x / 100) + (Math.floor(y / 100) * 7));
 
 
-        const column = Math.trunc(x / 100);
+        const column = Math.floor(x / 100);
         setSelectedColumn(column);
-        console.log(column);
+        //console.log(column);
     };
 
     return (
@@ -181,11 +350,11 @@ export default function ConnectFour() {
             <div className={s.container}>
                 <form className={s.gameForm} onSubmit={handleSubmit}>
                     <label htmlFor="text">Game name</label>
-                    <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename" />
+                    <input value={gameType} onChange={(e) => setGameType(e.target.value)} type="text" id="gamename" name="gamename" />
                     <button type="submit" id="button">Get game data</button>
                 </form>
                 <form className={s.gameForm} onSubmit={handleMove}>
-                    <div>{side}</div>
+                    <div>{color}</div>
                     <button type="submit" id="button">Submit move</button>
                 </form>
                 <div className={s.canvasContainer}>
