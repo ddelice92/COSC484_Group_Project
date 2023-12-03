@@ -383,10 +383,10 @@ async function checkerCheckForWin(gameCollection, game) {
     var w = true;
     var b = true;
     game.forEach((element) => {
-        if (element == 'w') {
+        if (element == 'w' || element == 'wk') {
             w = false;
         }
-        if (element == 'b') {
+        if (element == 'b' || element == 'bk') {
             b = false;
         }
     })

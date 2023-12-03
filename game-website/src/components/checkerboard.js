@@ -67,9 +67,11 @@ const Checkerboard = () => {
                 }
             } else if (lastJsonMessage.type === "update") {
                 setGameData(lastJsonMessage.game.currentBoard);
+                setSide(lastJsonMessage.game.nextToMove)
                 setTurn(lastJsonMessage.game.nextToMove);
             } else if (lastJsonMessage.type === "winner") {
                 setWinner(lastJsonMessage.winner);
+                alert(lastJsonMessage.winner + " is the winner.");
                 console.log("winner is " + lastJsonMessage.winner);
             }
         } else {
@@ -104,7 +106,7 @@ const Checkerboard = () => {
         if (side === turn && ((gameData[selectedBoxes] == side) || (gameData[selectedBoxes] == sidek))) {
             console.log((gameData[selectedBoxes] == side || gameData[selectedBoxes] == sidek) && (gameData[selectedBoxes] == turn || gameData[selectedBoxes] == turnk))
             if ((gameData[selectedBoxes] == 'w' || gameData[selectedBoxes] == 'wk' ) && (gameData[selectedBoxes] == side || gameData[selectedBoxes] == sidek) && (gameData[selectedBoxes] == turn || gameData[selectedBoxes] == turnk) ) {
-                if (((cell - selectedBoxes) % 9) == 0) {
+                if (((cell - selectedBoxes) % 9) == 0 && cell - selectedBoxes > 0) {
                     console.log('rdm')
                     gameData[cell] = scell
                     gameData[selectedBoxes] = 'e';
@@ -114,7 +116,7 @@ const Checkerboard = () => {
                         gameData[cell] = scell
                         gameData[selectedBoxes] = 'e';
                     }
-                } else if (((cell - selectedBoxes) % 7) == 0) {
+                } else if (((cell - selectedBoxes) % 7) == 0 && cell - selectedBoxes > 0) {
                     console.log("ldm")
                     gameData[cell] = gameData[selectedBoxes]
                     gameData[selectedBoxes] = 'e';
@@ -152,7 +154,7 @@ const Checkerboard = () => {
 
 
             } else if ((gameData[selectedBoxes] == 'b' || gameData[selectedBoxes] == 'bk') && (gameData[selectedBoxes] == side || gameData[selectedBoxes] == sidek) && (gameData[selectedBoxes] == turn || gameData[selectedBoxes] == turnk)) {
-                if (((selectedBoxes - cell) % 9) == 0) {
+                if (((selectedBoxes - cell) % 9) == 0 && selectedBoxes - cell > 0) {
                     console.log('lum')
                     gameData[cell] = scell
                     gameData[selectedBoxes] = 'e';
@@ -162,7 +164,7 @@ const Checkerboard = () => {
                         gameData[cell] = scell
                         gameData[selectedBoxes] = 'e';
                     }
-                } else if (((selectedBoxes - cell) % 7) == 0) {
+                } else if (((selectedBoxes - cell) % 7) == 0 && selectedBoxes - cell > 0) {
                     console.log("rum")
                     gameData[cell] = scell
                     gameData[selectedBoxes] = 'e';
@@ -172,7 +174,28 @@ const Checkerboard = () => {
                         gameData[cell] = scell
                         gameData[selectedBoxes] = 'e';
                     }
+                } else if (((cell - selectedBoxes) % 9) == 0) {
+                    console.log('rdm')
+                    gameData[cell] = scell
+                    gameData[selectedBoxes] = 'e';
+                    if (((cell - selectedBoxes) / 9) > 1) {
+                        gameData[cell - 9] = 'e'
+                        console.log("rdjm");
+                        gameData[cell] = scell
+                        gameData[selectedBoxes] = 'e';
+                    }
+                } else if (((cell - selectedBoxes) % 7) == 0) {
+                    console.log("ldm")
+                    gameData[cell] = gameData[selectedBoxes]
+                    gameData[selectedBoxes] = 'e';
+                    if (((cell - selectedBoxes) / 7) > 1) {
+                        gameData[cell - 7] = 'e'
+                        console.log("ldjm");
+                        gameData[cell] = scell
+                        gameData[selectedBoxes] = 'e';
+                    }
                 }
+
             }
 
             message.message = gameData;
@@ -356,12 +379,12 @@ const Checkerboard = () => {
                 //if the square being tested is not empty or the same color as the clicked piece
                 console.log(gameData[possibleSquares[i]] + " : " + gameData[possibleSquares[i]] + ":" + gameData[selectedBoxes])
                 if ((gameData[possibleSquares[i]] != 'e') && (gameData[possibleSquares[i]] != gameData[selectedBoxes])) {
-                    
+
                     //if square being tested is in column to the right of clicked piece but not rightmost on board
                     console.log(possibleSquares[i] % 8 + ":" + selectedBoxes % 8 + ":" + possibleSquares[i] % 8);
                     if ((possibleSquares[i] % 8 > selectedBoxes % 8) && (possibleSquares[i] % 8 < 7)) {
                         console.log('h');
-                       
+
                         //if next square over and down is still on board and is empty
                         if (((possibleSquares[i] + 9) <= 63) && (gameData[possibleSquares[i] + 9] == 'e')) {
                             possibleSquares.push(possibleSquares[i] + 9);
@@ -378,7 +401,7 @@ const Checkerboard = () => {
                 }
             }
             //if clicked piece is black, do everything mirrored
-            else {
+            else if (gameData[selectedBoxes] == 'b') {
                 if ((gameData[possibleSquares[i]] != 'e') && (gameData[possibleSquares[i]] != gameData[selectedBoxes])) {
                     console.log(possibleSquares[i] % 8 + ":" + selectedBoxes % 8 + ":" + possibleSquares[i] % 8);
                     if ((possibleSquares[i] % 8 > selectedBoxes % 8) && (possibleSquares[i] % 8 < 7)) {
@@ -392,6 +415,96 @@ const Checkerboard = () => {
                         }
                     }
                 }
+            } else if(gameData[selectedBoxes] == 'wk'){//Checks forwards and backwards for white kings
+
+
+                //if the square being tested is not empty or the same color as the clicked piece
+                console.log(gameData[possibleSquares[i]] + " : " + gameData[possibleSquares[i]] + ":" + 'w')
+                if ((gameData[possibleSquares[i]] != 'e') && (gameData[possibleSquares[i]] != 'w')) {
+
+                    //if square being tested is in column to the right of clicked piece but not rightmost on board
+                    console.log(possibleSquares[i] % 8 + ":" + selectedBoxes % 8 + ":" + possibleSquares[i] % 8);
+                    if ((possibleSquares[i] % 8 > selectedBoxes % 8) && (possibleSquares[i] % 8 < 7)) {
+                        console.log('h');
+
+                        //if next square over and down is still on board and is empty
+                        if (((possibleSquares[i] + 9) <= 63) && (gameData[possibleSquares[i] + 9] == 'e')) {
+                            possibleSquares.push(possibleSquares[i] + 9);
+                        }
+                    }
+                    //if square being tested is in column to the left of clicked piece but not leftmost on board
+                    else if ((possibleSquares[i] % 8 < selectedBoxes % 8) && (possibleSquares[i] % 8 > 0)) {
+                        console.log('rrrr');
+                        //if next square over and down is still on board and is empty
+                        if (((possibleSquares[i] + 7) <= 63) && (gameData[possibleSquares[i] + 7] == 'e')) {
+                            possibleSquares.push(possibleSquares[i] + 7);
+                        }
+                    }
+                }
+
+
+                if ((gameData[possibleSquares[i]] != 'e') && (gameData[possibleSquares[i]] != 'w')) {
+                    console.log(possibleSquares[i] % 8 + ":" + selectedBoxes % 8 + ":" + possibleSquares[i] % 8);
+                    if ((possibleSquares[i] % 8 > selectedBoxes % 8) && (possibleSquares[i] % 8 < 7)) {
+                        if (((possibleSquares[i] - 7) >= 0) && (gameData[possibleSquares[i] - 7] == 'e')) {
+                            possibleSquares.push(possibleSquares[i] - 7);
+                        }
+                    }
+                    else if ((possibleSquares[i] % 8 < selectedBoxes % 8) && (possibleSquares[i] % 8 > 0)) {
+                        if (((possibleSquares[i] - 9) >= 0) && (gameData[possibleSquares[i] - 9] == 'e')) {
+                            possibleSquares.push(possibleSquares[i] - 9);
+                        }
+                    }
+                }
+
+
+
+
+            } else if (gameData[selectedBoxes] == 'bk') {//Checks forwards and backwards for white kings
+
+
+                //if the square being tested is not empty or the same color as the clicked piece
+                console.log(gameData[possibleSquares[i]] + " : " + gameData[possibleSquares[i]] + ":" + 'b')
+                if ((gameData[possibleSquares[i]] != 'e') && (gameData[possibleSquares[i]] != 'b')) {
+
+                    //if square being tested is in column to the right of clicked piece but not rightmost on board
+                    console.log(possibleSquares[i] % 8 + ":" + selectedBoxes % 8 + ":" + possibleSquares[i] % 8);
+                    if ((possibleSquares[i] % 8 > selectedBoxes % 8) && (possibleSquares[i] % 8 < 7)) {
+                        console.log('h');
+
+                        //if next square over and down is still on board and is empty
+                        if (((possibleSquares[i] + 9) <= 63) && (gameData[possibleSquares[i] + 9] == 'e')) {
+                            possibleSquares.push(possibleSquares[i] + 9);
+                        }
+                    }
+                    //if square being tested is in column to the left of clicked piece but not leftmost on board
+                    else if ((possibleSquares[i] % 8 < selectedBoxes % 8) && (possibleSquares[i] % 8 > 0)) {
+                        console.log('rrrr');
+                        //if next square over and down is still on board and is empty
+                        if (((possibleSquares[i] + 7) <= 63) && (gameData[possibleSquares[i] + 7] == 'e')) {
+                            possibleSquares.push(possibleSquares[i] + 7);
+                        }
+                    }
+                }
+
+
+                if ((gameData[possibleSquares[i]] != 'e') && (gameData[possibleSquares[i]] != 'b')) {
+                    console.log(possibleSquares[i] % 8 + ":" + selectedBoxes % 8 + ":" + possibleSquares[i] % 8);
+                    if ((possibleSquares[i] % 8 > selectedBoxes % 8) && (possibleSquares[i] % 8 < 7)) {
+                        if (((possibleSquares[i] - 7) >= 0) && (gameData[possibleSquares[i] - 7] == 'e')) {
+                            possibleSquares.push(possibleSquares[i] - 7);
+                        }
+                    }
+                    else if ((possibleSquares[i] % 8 < selectedBoxes % 8) && (possibleSquares[i] % 8 > 0)) {
+                        if (((possibleSquares[i] - 9) >= 0) && (gameData[possibleSquares[i] - 9] == 'e')) {
+                            possibleSquares.push(possibleSquares[i] - 9);
+                        }
+                    }
+                }
+
+
+
+
             }
 
         }
