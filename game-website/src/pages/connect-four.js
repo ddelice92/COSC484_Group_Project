@@ -8,12 +8,12 @@ import { Select } from "@mui/material";
 
 export default function ConnectFour() {
     const { token } = useAuth();
-    var [gameType, setGameType] = useState('connectFour');
+    var [gameName, setGameName] = useState('');
     const { sendJsonMessage, lastJsonMessage } = useWebSocket('ws://localhost:8080', {
         shouldReconnect: (closeEvent) => true,
-        reconnectInterval: 1,
+        reconnectInterval: 5,
         //change attempts back to 5 when done testing
-        reconnectAttempts: 1,
+        reconnectAttempts: 5,
     });
     const [gameData, setGameData] = useState([
         0, 0, 0, 0, 0, 0, 0,
@@ -29,11 +29,11 @@ export default function ConnectFour() {
 
     const canvasRef = useRef(null);
 
-    /*useEffect(() => {
+    useEffect(() => {
         console.log(JSON.stringify(lastJsonMessage));
         if (lastJsonMessage !== null) {
             if (lastJsonMessage.type === "success") {
-                setColor(lastJsonMessage.color);
+                setColor(lastJsonMessage.side);
             } else if (lastJsonMessage.error) {
                 if (lastJsonMessage.error === "GAME_FULL") {
                     alert("Tried to join a full game");
@@ -56,7 +56,7 @@ export default function ConnectFour() {
                 0, 0, 0, 0, 0, 0, 0])
            
         }
-    }, [lastJsonMessage]);*/
+    }, [lastJsonMessage]);
 
     useEffect(() => {
         if (winner != 0) {
@@ -79,9 +79,9 @@ export default function ConnectFour() {
         e.preventDefault();
         const message = {
             type: 'connectGame',
-            gameType: gameType,
+            gameName: gameName,
             session_id: token,
-            gameType: "connectFour"
+            gameType: "connectfour"
         };
 
         sendJsonMessage(message);
@@ -123,12 +123,20 @@ export default function ConnectFour() {
 
                     //add to count
                     win += gameData[(i*7) + j];
-                    if(win > 3) {
-                        setWinner(1);
+                    if (win > 3) {
+                        const winMsg = {
+                            type: "winner",
+                            winner: 1
+                        }
+                        sendJsonMessage(winMsg)
                         return true;
                     }
                     else if(win < -3) {
-                        setWinner(-1);
+                        const winMsg = {
+                            type: "winner",
+                            winner: -1
+                        }
+                        sendJsonMessage(winMsg)
                         return true;
                     }
                 }
@@ -239,28 +247,38 @@ export default function ConnectFour() {
             }
         } else if ((turn === color) && (gameData[selectedColumn] == 0)) {
             console.log("circle will be drawn at " + findOpenSquare());
-            const message = {
-                type: 'makeMove',
-                message: [selectedColumn, color],
-                gameType: gameType,
-                gameType: "connectFour"
-            };
+            var message = {};
             console.log("this is the JSON message sent: " + JSON.stringify(message));
-            sendJsonMessage(message);
+            
             var openSquare = findOpenSquare();
             if((turn === 1)) {
                 gameData[openSquare] = 1;
+                message = {
+                    type: 'makeMove',
+                    message: gameData,
+                    gameName: gameName,
+                    gameType: "connectfour"
+                };
+                sendJsonMessage(message);
                 //drawYellowCircle(context, (selectedColumn * 100) + 50, (Math.floor(openSquare/6) * 100) + 50);
                 drawBoard();
-                setTurn(-1);
-                setColor(-1);
+                //setTurn(-1);
+                //setColor(-1);
             }
             else {
                 gameData[openSquare] = -1;
                 //drawYellowCircle(context, (selectedColumn * 100) + 50, (Math.floor(openSquare/6) * 100) + 50);
+                message = {
+                    type: 'makeMove',
+                    message: gameData,
+                    gameName: gameName,
+                    gameType: "connectfour"
+                };
+                sendJsonMessage(message);
+
                 drawBoard();
-                setTurn(1);
-                setColor(1);
+                //setTurn(1);
+                //setColor(1);
             }
 
             checkWin();
@@ -350,7 +368,7 @@ export default function ConnectFour() {
             <div className={s.container}>
                 <form className={s.gameForm} onSubmit={handleSubmit}>
                     <label htmlFor="text">Game name</label>
-                    <input value={gameType} onChange={(e) => setGameType(e.target.value)} type="text" id="gamename" name="gamename" />
+                    <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename" />
                     <button type="submit" id="button">Get game data</button>
                 </form>
                 <form className={s.gameForm} onSubmit={handleMove}>

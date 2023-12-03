@@ -256,6 +256,94 @@ async function main() {
 
 
                     }
+                } else if (jsonmessage.gameType == 'connectfour') {//checkers
+                    console.log('ct');
+                    if (jsonmessage.type == 'makeMove') {
+                        console.log('trying to make move');
+                        console.log("socketmap size: " + socketMap.size)
+                        const gameData = await findGameByName(gameCollection, jsonmessage.gameName);
+                        console.log('making move?');
+                        await connectfourMakeMove(gameCollection, jsonmessage.message, gameData);
+
+                
+                        
+                            const moveMessage = {
+                                type: "update",
+                                game: await findGameByName(gameCollection, jsonmessage.gameName)
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+                        
+
+
+
+
+
+                    }
+                    if (jsonmessage.type == 'winner') {
+                        broadcastGame(socketMap, socketInfo.gameName, jsonmessage);
+                    }
+                    if (jsonmessage.type == 'connectGame') {
+                        console.log('checkCG');
+                        const game = await findGameByName(gameCollection, jsonmessage.gameName)
+                        console.log(game);
+                        const moveMessage = {
+                            type: "update",
+                            game: game
+                        }
+                        socketInfo.gameName = jsonmessage.gameName;
+                        socketInfo.gameType = jsonmessage.gameType;
+                        socketInfo.session_id = jsonmessage.session_id;
+                        socketMap.set(socket, socketInfo);
+                        if (game == null) {
+                            await createGame(gameCollection, generateGame(socketInfo.gameType, socketInfo.gameName));
+                            await addUserToGame(gameCollection, socketInfo.gameName, socketInfo.session_id, "w");
+                            const response = {
+                                type: "success",
+                                side: 1
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, {
+                                type: "update",
+                                game: await findGameByName(gameCollection, socketInfo.gameName),
+                            })
+                            socket.send(JSON.stringify(response));
+                        } else if (game.w == socketInfo.session_id) {
+                            const response = {
+                                type: "success",
+                                side: 1
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+                            socket.send(JSON.stringify(response));
+                        } else if (game && game.b == null && game.x != socketInfo.session_id) {
+                            await addUserToGame(gameCollection, socketInfo.gameName, socketInfo.session_id, "b");
+                            const response = {
+                                type: "success",
+                                side: -1
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+                            socket.send(JSON.stringify(response));
+                        } else if (game.b == socketInfo.session_id) {
+                            const response = {
+                                type: "success",
+                                side: -1
+                            }
+                            broadcastGame(socketMap, socketInfo.gameName, moveMessage)
+                            socket.send(JSON.stringify(response));
+                        } else if (game.b != null && game.x != null) {
+                            const response = {
+                                type: "error",
+                                error: "GAME_FULL"
+                            }
+                            socket.send(JSON.stringify(response));
+                            console.log("gf");
+                        } else {
+
+                        }
+
+
+
+
+
+                    }
                 } else {
                     console.log("?")
                 }
@@ -339,6 +427,29 @@ async function main() {
 
 }
 
+
+async function connectfourMakeMove(gameCollection, game, gameData) {
+    next = gameData.nextToMove;
+    if (game != gameData.currentBoard) {
+        if (gameData.nextToMove == 1) {
+            next = -1;
+        } else {
+            next = 1;
+        }
+    } else {
+
+    }
+    console.log(game);
+
+    await gameCollection.updateOne({ _id: gameData._id }, {
+        "$set": {
+            currentBoard: game,
+            nextToMove: next
+        }
+    })
+
+}
+
 function broadcastGame(socketMap, gameName, message) {
     socketMap.forEach((data, socket, m) => {
         if (data.gameName == gameName) {
@@ -378,6 +489,8 @@ async function checkersMakeMove(gameCollection, game, gameData) {
         }
     })
 }
+
+
 
 async function checkerCheckForWin(gameCollection, game) {
     var w = true;
@@ -519,16 +632,15 @@ function generateGame(gameType, gameName) {
             _id: gameName,
             gameType: "connectfour",
             currentBoard: [
-                "e", "e", "e", "e", "e", "e", "e",
-                "e", "e", "e", "e", "e", "e", "e",
-                "e", "e", "e", "e", "e", "e", "e",
-                "e", "e", "e", "e", "e", "e", "e",
-                "e", "e", "e", "e", "e", "e", "e",
-                "e", "e", "e", "e", "e", "e", "e",
-                "e", "e", "e", "e", "e", "e", "e"],
-            nextToMove: "w",
-            x: null,
-            o: null
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0],
+            nextToMove: 1,
+            w: null,
+            b: null
         }
     }else {
             console.error("tried to create a game of invalid gameType");
@@ -604,6 +716,26 @@ async function addUserToGame(gameCollection, gameName, userSessionId, side) {
             }
         );
     } else if (game.gameType == "checkers" && side == "b" && game.b == null) {
+        await gameCollection.updateOne(
+            { _id: gameName },
+            {
+                "$set": {
+                    b: userSessionId
+                }
+            }
+        );
+    }
+
+    if (game.gameType == "connectfour" && side == "w" && game.w == null) {
+        await gameCollection.updateOne(
+            { _id: gameName },
+            {
+                "$set": {
+                    w: userSessionId
+                }
+            }
+        );
+    } else if (game.gameType == "connectfour" && side == "b" && game.b == null) {
         await gameCollection.updateOne(
             { _id: gameName },
             {
