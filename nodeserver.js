@@ -42,7 +42,6 @@ async function main() {
         console.log("Server Listening on PORT:", port);
     });
 
-    ap
     app.ws('/ws', async (socket, req) => {
         socketInfo = {
             gameName: "",

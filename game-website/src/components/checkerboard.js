@@ -67,7 +67,6 @@ const Checkerboard = () => {
                 }
             } else if (lastJsonMessage.type === "update") {
                 setGameData(lastJsonMessage.game.currentBoard);
-                setSide(lastJsonMessage.game.nextToMove)
                 setTurn(lastJsonMessage.game.nextToMove);
             } else if (lastJsonMessage.type === "winner") {
                 setWinner(lastJsonMessage.winner);
@@ -549,12 +548,14 @@ const Checkerboard = () => {
 
     return (
         <div>
-        <canvas ref={canvasRef} onClick={handleClick} width={500} height={500} style={{ borderRadius: '8px' }} />
             <form onSubmit={handleSubmit}>
                 <label for="text">Game name</label>
                 <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename"></input>
                 <button type="submit" id="button">Get game data</button>
             </form>
+
+        <canvas ref={canvasRef} onClick={handleClick} width={500} height={500} style={{ borderRadius: '8px' }} />
+            
 
         </div>
     );
