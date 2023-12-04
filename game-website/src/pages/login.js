@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import Header from "../components/header"
 import { useAuth } from '../context/user.context';
 import { useLocation, useNavigate } from "react-router-dom";
+import Invalid from '../components/invalid'
 import s from "../CSS/login.module.css";
 
 export default function Login() {
@@ -14,6 +15,8 @@ export default function Login() {
     const { login } = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [condition, setCondition] = useState('')
+    const [invalid, setInvalid] = useState(false);
     
 
     const redirect = () => {
@@ -23,6 +26,7 @@ export default function Login() {
 
     const handleLogin = async (e) => {
         e.preventDefault(); // Prevent the form from submitting the traditional way.
+        setInvalid(false)
 
         try {
         const response = await axios.post('/login', {
@@ -38,6 +42,8 @@ export default function Login() {
         }
         } 
         catch (error) {
+            setCondition("incorrect");
+            setInvalid(true);
             console.error(error);
         }
     };
@@ -47,6 +53,7 @@ export default function Login() {
         <Header />
         <body>
             <div id={s.formContainer}>
+                <Invalid invalid={invalid} condition={condition} />
                 <div id={s.formBox}>
                     <h1>
                         Login

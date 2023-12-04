@@ -20,7 +20,18 @@ export default function Result({condition, winner, onBoxClick}) {
         <div className={s.box} style={{ width: `${width}vw` }} onClick={handleClick} >
             {condition && 
                 <div>
-                    <p>{winner} has won the game</p>
+                    {condition === 'null' &&
+                        <p>Choose a move first</p>
+                    }
+                    {condition === "win" &&
+                        <p>{winner.toUpperCase()} has won the game</p>
+                    }
+                    {condition === "notTurn" &&
+                        <p>Not your turn</p>
+                    }
+                    {condition === "full" &&
+                        <p>Tried to join a full game</p>
+                    }
                     <p><i>Click here to close out</i></p>
                 </div>
             }
