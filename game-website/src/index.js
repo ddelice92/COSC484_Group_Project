@@ -5,7 +5,7 @@ import axios from 'axios';
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-axios.defaults.baseURL = 'http://games.zenithgaming.horse';
+axios.defaults.baseURL = 'https://games.zenithgaming.horse';
 root.render(
   
   <React.StrictMode>
