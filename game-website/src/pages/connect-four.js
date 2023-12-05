@@ -13,7 +13,6 @@ export default function ConnectFour() {
     const { sendJsonMessage, lastJsonMessage } = useWebSocket('wss://games.zenithgaming.horse/ws', {
         shouldReconnect: (closeEvent) => true,
         reconnectInterval: 5,
-        //change attempts back to 5 when done testing
         reconnectAttempts: 5,
     });
     const [gameData, setGameData] = useState([
@@ -24,7 +23,7 @@ export default function ConnectFour() {
         0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0]); // The current board for the game
     const [selectedColumn, setSelectedColumn] = useState([]); // Changed from selectedBoxes
-    const [color, setColor] = useState(1);
+    const [color, setColor] = useState(0);
     const [turn, setTurn] = useState(1);
     const [winner, setWinner] = useState(0);
     const [win, setWin] = useState('');
@@ -44,6 +43,13 @@ export default function ConnectFour() {
             } else if (lastJsonMessage.type === "update") {
                 setGameData(lastJsonMessage.game.currentBoard);
                 setTurn(lastJsonMessage.game.nextToMove);
+                if(lastJsonMessage.w == token) {
+                    setColor(1);
+                }
+                else if(lastJsonMessage.b == token) {
+                    setColor(-1);
+                }
+                console.log("the color of this player has been set to: " + color);
             } else if (lastJsonMessage.type === "winner") {
                 setWinner(lastJsonMessage.winner);
                 console.log("winner is " + lastJsonMessage.winner);
@@ -89,6 +95,8 @@ export default function ConnectFour() {
             gameType: "connectfour"
         };
 
+        console.log("this is the JSON message sent: " + JSON.stringify(message));
+        console.log("also this is the color of player: " + color);
         sendJsonMessage(message);
     };
 
@@ -255,7 +263,7 @@ export default function ConnectFour() {
         } else if ((turn === color) && (gameData[selectedColumn] == 0)) {
             console.log("circle will be drawn at " + findOpenSquare());
             var message = {};
-            console.log("this is the JSON message sent: " + JSON.stringify(message));
+            
             
             var openSquare = findOpenSquare();
             if((turn === 1)) {
@@ -266,11 +274,13 @@ export default function ConnectFour() {
                     gameName: gameName,
                     gameType: "connectfour"
                 };
+                console.log("this is the JSON message sent: " + JSON.stringify(message));
                 sendJsonMessage(message);
                 //drawYellowCircle(context, (selectedColumn * 100) + 50, (Math.floor(openSquare/6) * 100) + 50);
                 drawBoard();
-                //setTurn(-1);
+                setTurn(-1);
                 //setColor(-1);
+                //handleSubmit();
             }
             else {
                 gameData[openSquare] = -1;
@@ -281,11 +291,13 @@ export default function ConnectFour() {
                     gameName: gameName,
                     gameType: "connectfour"
                 };
+                console.log("this is the JSON message sent: " + JSON.stringify(message));
                 sendJsonMessage(message);
 
                 drawBoard();
-                //setTurn(1);
+                setTurn(1);
                 //setColor(1);
+                //handleSubmit();
             }
 
             checkWin();

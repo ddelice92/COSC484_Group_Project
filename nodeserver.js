@@ -249,7 +249,7 @@ async function main() {
 
 
                     }
-                } else if (jsonmessage.gameType == 'connectfour') {//checkers
+                } else if (jsonmessage.gameType == 'connectfour') {//connect four
                     console.log('ct');
                     if (jsonmessage.type == 'makeMove') {
                         console.log('trying to make move');
