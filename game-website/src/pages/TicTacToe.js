@@ -5,6 +5,7 @@ import AuthUser from '../components/authUser'
 import s from "../CSS/tictactoe.module.css"
 import { useAuth } from '../context/user.context';
 import Result from '../components/resultPopup'
+import '../CSS/gameForm.css'
 
 
 export default function TicTacToe() {
@@ -170,24 +171,30 @@ export default function TicTacToe() {
 
     return (
         <div>
-            <AuthUser />
+            {/* <AuthUser /> */}
             <Header />
             
             <div className={s.container}>
                 <Result condition={condition} winner={winner} onBoxClick={handleBoxClick}/>
-                <form className={s.gameForm} onSubmit={handleSubmit}>
-                    <label for="text">Game name</label>
-                    <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename"></input>
-                    <button type="submit" id="button">Get game data</button>
-                </form>
-                <form className={s.gameForm} onSubmit={handleMove}>
-                    <div>{side}</div>
-                    <button type="submit" id="button">Submit move</button>
-                </form>
+                <div class={s.formContainer}>
+                    <form className={s.gameForm} onSubmit={handleSubmit}>
+                        <div class={s.labelButton}>
+                            <label for="text">Game name</label>
+                            <button type="submit" id="button">Get game data</button>
+                        </div>
+                        <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename"></input>
+                    </form>
+                </div>
                 <div className={s.canvasContainer}>
                     <canvas ref={canvasRef} onClick={handleClick} id="tic-tac-toe-canvas" width="300" height="300">
                     </canvas>
                 </div>
+                {side &&
+                    <form className={s.gameSubmit} onSubmit={handleMove}>
+                        <p>{side.toUpperCase()}</p>
+                        <button type="submit" id="button">Submit move</button>
+                    </form>
+                }
                 <div>
                 
             </div>

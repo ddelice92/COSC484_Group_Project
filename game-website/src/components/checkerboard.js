@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react"
 import useWebSocket from 'react-use-websocket';
 import { useAuth } from '../context/user.context';
 import Result from '../components/resultPopup'
+import ss from '../CSS/checkers.module.css'
 
 const Checkerboard = () => {
     const canvasRef = useRef(null);
@@ -553,17 +554,19 @@ const Checkerboard = () => {
     };
 
     return (
-        <div>
-        <Result condition={condition} winner={winner} onBoxClick={handleBoxClick}/>
-            <form onSubmit={handleSubmit}>
-                <label for="text">Game name</label>
-                <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename"></input>
-                <button type="submit" id="button">Get game data</button>
-            </form>
+        <div id={ss.checkersContainer}>
+            <Result condition={condition} winner={winner} onBoxClick={handleBoxClick}/>
+            <div class={ss.formContainer}>
+                <form onSubmit={handleSubmit}>
+                    <div class={ss.labelButton}>
+                        <label for="text">Game name</label>
+                        <button type="submit" id="button">Get game data</button>
+                    </div>
+                    <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename"></input>
+                </form>
+            </div>
 
-        <canvas ref={canvasRef} onClick={handleClick} width={500} height={500} style={{ borderRadius: '8px' }} />
-            
-
+            <canvas ref={canvasRef} onClick={handleClick} width={500} height={500} style={{ borderRadius: '8px' }} />
         </div>
     );
 };

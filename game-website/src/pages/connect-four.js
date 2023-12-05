@@ -374,19 +374,25 @@ export default function ConnectFour() {
 
     return (
         <div>
-            <AuthUser />
+            {/* <AuthUser /> */}
             <Header />
             <div className={s.container}>
                 <Result condition={condition} winner={win} onBoxClick={handleBoxClick}/>
-                <form className={s.gameForm} onSubmit={handleSubmit}>
-                    <label htmlFor="text">Game name</label>
-                    <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename" />
-                    <button type="submit" id="button">Get game data</button>
-                </form>
-                <form className={s.gameForm} onSubmit={handleMove}>
-                    <div>{color}</div>
-                    <button type="submit" id="button">Submit move</button>
-                </form>
+                <div class={s.formContainer}>
+                    <form className={s.gameForm} onSubmit={handleSubmit}>
+                        <div class={s.labelButton}>
+                            <label htmlFor="text">Game name</label>
+                            <button type="submit" id="button">Get game data</button>
+                        </div>
+                        <input value={gameName} onChange={(e) => setGameName(e.target.value)} type="text" id="gamename" name="gamename" />
+                        
+                    </form>
+                
+                    <form className={s.gameMove} onSubmit={handleMove}>
+                        <p class="gameSide">{color}</p>
+                        <button type="submit" id="button">Submit move</button>
+                    </form>
+                </div>
                 <div className={s.canvasContainer}>
                     <canvas ref={canvasRef} onClick={handleClick} id="connect-four-canvas" width="700" height="600">
                     </canvas>
